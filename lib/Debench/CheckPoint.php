@@ -7,10 +7,10 @@ declare(strict_types=1);
  * @link http://github.com/myaaghubi/debench Github
  * @author Mohammad Yaaghubi <m.yaaghubi.abc@gmail.com>
  * @copyright Copyright (c) 2024, Mohammad Yaaghubi
- * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ * @license MIT License
  */
 
-namespace DB\MIGRATIONS;
+namespace DEBENCH;
 
 class CheckPoint
 {
