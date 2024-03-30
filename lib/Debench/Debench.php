@@ -41,7 +41,33 @@ class Debench
 
         register_shutdown_function(function () {
             // to calculate some stuff
+            $this->calculateExecutionTime();
         });
+    }
+
+
+    /**
+     * Calculate elapsed time for each checkpoint
+     *
+     * @return void
+     */
+    public function calculateExecutionTime(): void
+    {
+        // may the below loop take some time
+        $currentTime = $this->getCurrentTime();
+
+        $prevKey = '';
+        $prevCP = null;
+        foreach ($this->checkPoints as $key => $cp) {
+            if (!empty($prevKey) && $prevCP != null) {
+                $this->checkPoints[$prevKey]->time = $cp->time - $prevCP->time;
+            }
+
+            $prevKey = $key;
+            $prevCP = $cp;
+        }
+
+        $this->checkPoints[$prevKey]->time = $currentTime - $prevCP->time;
     }
 
 
