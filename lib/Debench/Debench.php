@@ -1,12 +1,18 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 /**
  * @package Debench
  * @link http://github.com/myaaghubi/debench Github
  * @author Mohammad Yaaghubi <m.yaaghubi.abc@gmail.com>
  * @copyright Copyright (c) 2024, Mohammad Yaaghubi
- * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3
+ * @license MIT License
  */
+
+namespace DEBENCH;
+
+use DEBENCH\CheckPoint;
 
 class Debench
 {
@@ -14,7 +20,7 @@ class Debench
 
     private mixed $checkPoints;
     private int $ramUsageMax;
-    
+
     private int $lastCheckPointInMS;
     private int $lastCheckPointNumber;
 
@@ -23,7 +29,7 @@ class Debench
      *
      * @return void
      */
-    function __construct(private bool $active=true)
+    public function __construct(private bool $active = true)
     {
         if (!$this->active) {
             return;
@@ -47,11 +53,63 @@ class Debench
 
 
     /**
+     * Add a new checkpoint
+     * 
+     * @param  string $tag
+     * @return void
+     */
+    public function newPoint(string $tag = ''): void
+    {
+        if (!$this->active) {
+            return;
+        }
+
+        if (empty($tag)) {
+            $tag = 'point ' . ($this->lastCheckPointNumber + 1);
+        }
+
+        // just trying to separate duplicate tags from each other
+        $tag .= '#' . ($this->lastCheckPointNumber + 1);
+
+        $currentTime = $this->getCurrentTime();
+        $ramUsage = $this->getRamUsagePeak();
+
+        if ($this->lastCheckPointInMS == 0) {
+            $currentTime = $this->getRequestTime();
+        }
+
+
+        // generates a backtrace
+        $backtrace = debug_backtrace();
+        // shift an element off the beginning of array
+        $caller = array_shift($backtrace);
+
+        // get the file address that checkPoint() called from
+        $file = $caller['file'];
+        // get the line number that checkPoint() called from
+        $line = $caller['line'];
+
+        // specify calls from self class
+        if (strrpos($caller['file'], __FILE__) !== false) {
+            $line = 0;
+            $file = '';
+        }
+
+        $this->checkPoints[$tag] = new CheckPoint($currentTime, $ramUsage, $file, $line);
+
+        $this->ramUsageMax = max($ramUsage, $this->ramUsageMax);
+
+        $this->lastCheckPointInMS = $currentTime;
+        $this->lastCheckPointNumber += 1;
+    }
+
+
+    /**
      * Calculate elapsed time for each checkpoint
      *
      * @return void
      */
-    public function calculateExecutionTime(): void
+    private function calculateExecutionTime(): void
     {
         // may the below loop take some time
         $currentTime = $this->getCurrentTime();
@@ -60,14 +118,14 @@ class Debench
         $prevCP = null;
         foreach ($this->checkPoints as $key => $cp) {
             if (!empty($prevKey) && $prevCP != null) {
-                $this->checkPoints[$prevKey]->time = $cp->time - $prevCP->time;
+                $this->checkPoints[$prevKey]->setTimestamp($cp->getTimeStamp() - $prevCP->getTimeStamp());
             }
 
             $prevKey = $key;
             $prevCP = $cp;
         }
 
-        $this->checkPoints[$prevKey]->time = $currentTime - $prevCP->time;
+        $this->checkPoints[$prevKey]->setTimestamp($currentTime - $prevCP->getTimeStamp());
     }
 
 
@@ -87,7 +145,7 @@ class Debench
      *
      * @return int
      */
-    public function getLastCheckPointInMS(): int
+    private function getLastCheckPointInMS(): int
     {
         return $this->lastCheckPointInMS;
     }
@@ -98,7 +156,7 @@ class Debench
      *
      * @return int
      */
-    public function getLastCheckPointNumber(): int
+    private function getLastCheckPointNumber(): int
     {
         return $this->lastCheckPointNumber;
     }
@@ -109,7 +167,7 @@ class Debench
      *
      * @return array<string,object>
      */
-    public function getCheckPoints(): mixed
+    private function getCheckPoints(): mixed
     {
         return $this->checkPoints;
     }
@@ -177,7 +235,7 @@ class Debench
      * @param  int $size
      * @return string
      */
-    public function getFormattedBytes($size = 0): string
+    private function getFormattedBytes(int $size = 0): string
     {
         if ($size == 0) {
             return '0 B';
@@ -207,9 +265,9 @@ class Debench
      * @param  string $tag
      * @return string
      */
-    public function getTagName($tag = ''): string
+    private function getTagName(string $tag = ''): string
     {
         // return substr($tag, 0, strrpos($tag, '#'));
-        return "#".substr($tag, 0, strrpos($tag, '#'));
+        return "#" . substr($tag, 0, strrpos($tag, '#'));
     }
 }
