@@ -1,0 +1,35 @@
+<debench>
+
+  <ul class="debench-pannels">
+    <li class="panel-points">
+      <div class="panel">
+        {{@debench.log}}
+      </div>
+    </li>
+    <li>
+      <div class="panel main-panel-minimal">
+        <ul>
+          <li>
+            <b>{{@debench.fullExecTime}} ms</b>,
+            <b>{{@debench.ramUsageMax}}</b>
+          </li>
+          <li class="debench-toggle" data-target="panel-toggle">
+            <b>&#8651</b>
+          </li>
+        </ul>
+      </div>
+      <div class="panel main-panel">
+        <ul>
+          <li data-target="panel-points">
+            Time: <b>{{@debench.fullExecTime}} ms</b>,
+            Memory: <b>{{@debench.ramUsageMax}}</b>,
+            Included: <b>{{@debench.includedFilesCount}}</b> files
+          </li>
+          <li class="debench-toggle" data-target="panel-main">
+            <b>&#8651</b>
+          </li>
+        </ul>
+      </div>
+    </li>
+  </ul>
+</debench>
