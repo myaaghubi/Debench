@@ -12,11 +12,9 @@ declare(strict_types=1);
 
 namespace DEBENCH;
 
-use DEBENCH\CheckPoint;
-
 class Debench
 {
-    private string $base;
+    private array $hype;
 
     private mixed $checkPoints;
     private int $ramUsageMax;
@@ -29,21 +27,25 @@ class Debench
      *
      * @return void
      */
-    public function __construct(private bool $active = true)
+    public function __construct(private bool $active = true, private string $ui = 'theme')
     {
         if (!$this->active) {
             return;
         }
 
-        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-        $this->base = dirname(($backtrace[0])['file']);
+        $this->hype = [];
 
-        // CheckPoints[]
         $this->checkPoints = [];
         $this->ramUsageMax = 0;
         $this->lastCheckPointInMS = 0;
         $this->lastCheckPointNumber = 0;
 
+        $this->newPoint('debench init');
+
+        $this->hype['ui'] = rtrim($ui, '/');
+
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+        $this->hype['base'] = dirname(($backtrace[0])['file']);
 
         register_shutdown_function(function () {
             // to calculate some stuff
