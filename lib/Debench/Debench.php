@@ -50,6 +50,7 @@ class Debench
         register_shutdown_function(function () {
             // to calculate some stuff
             $this->calculateExecutionTime();
+            print $this->makeOutput();
         });
     }
 
@@ -271,5 +272,37 @@ class Debench
     {
         // return substr($tag, 0, strrpos($tag, '#'));
         return "#" . substr($tag, 0, strrpos($tag, '#'));
+    }
+
+
+    /**
+     * Get formatted log
+     *
+     * @return string
+     */
+    public function makeOutput(): string
+    {
+        $fullTime = $this->getExecutionTime() < 1 ? 1 : $this->getExecutionTime();
+
+        $log = '';
+        foreach ($this->checkPoints as $key => $cp) {
+            $log .= Template::render($this->hype['base'] . '/' . $this->hype['ui'] . '/debench/widget.log.htm', [
+                "name" => $this->getTagName($key),
+                "path" => $cp->getPath(),
+                "lineNumber" => $cp->getLineNumber(),
+                "timestamp" => $cp->getTimestamp(),
+                "memory" => $this->getFormattedBytes($cp->getMemory()),
+                "percent" => round($cp->getTimestamp() / $fullTime * 100),
+            ]);
+        }
+
+        return Template::render($this->hype['base'] . '/' . $this->hype['ui'] . '/debench/widget.htm', [
+            'base' => $this->hype['ui'],
+            'ramUsageMax' => $this->getFormattedBytes($this->ramUsageMax),
+            'includedFilesCount' => $this->getLoadedFilesCount(),
+            'checkPoints' => $this->getLastCheckPointNumber(),
+            'log' => $log,
+            'fullExecTime' => $fullTime
+        ]);
     }
 }
