@@ -348,6 +348,7 @@ class Debench
             'ramUsageMax' => $this->getRamUsageMax(true),
             'includedFilesCount' => $this->getLoadedFilesCount(),
             'checkPoints' => $this->getLastCheckPointNumber(),
+            'preloadTime' => $this->initPointMS - $this->getRequestTime(),
             'log' => $log,
             'fullExecTime' => $eTime
         ]);

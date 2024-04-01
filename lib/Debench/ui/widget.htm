@@ -11,7 +11,7 @@
       <div class="panel main-panel-minimal">
         <ul>
           <li>
-            <b>{{@fullExecTime}} ms</b>,
+            <b>{{@fullExecTime}} ms</b> (<span title="Preload time: {{@preloadTime}} ms">{{@preloadTime}} ms</span>),
             <b>{{@ramUsageMax}}</b>
           </li>
           <li class="debench-toggle" data-target="panel-toggle">
@@ -22,7 +22,7 @@
       <div class="panel main-panel">
         <ul>
           <li data-target="panel-points">
-            Time: <b>{{@fullExecTime}} ms</b>,
+            Time: <b>{{@fullExecTime}} ms</b> (<span title="Preload time: {{@preloadTime}} ms">{{@preloadTime}} ms</span>),
             Memory: <b>{{@ramUsageMax}}</b>,
             Included: <b>{{@includedFilesCount}}</b> files
           </li>
