@@ -25,10 +25,11 @@ class Utils
     {
         if ($checkForError) {
             if (!file_exists($from)) {
-                throw new \Exception("File/Dir '$from` doesn't exists!");
+                throw new \Exception("File/Dir source '$from` doesn't exists!");
             }
-            if (!file_exists($to)) {
-                throw new \Exception("File/Dir '$to` doesn't exists!");
+            $toBack = dirname($to, 1);
+            if (!is_writable($toBack)) {
+                throw new \Exception("Dir dest '$toBack' is not writable!");
             }
         }
 
@@ -42,7 +43,7 @@ class Utils
             if (($file != '.') && ($file != '..')) {
                 if (is_dir($from . DIRECTORY_SEPARATOR . $file)) {
                     // for sub directory 
-                    $this->copyDir($from . DIRECTORY_SEPARATOR . $file, $to . DIRECTORY_SEPARATOR . $file, false);
+                    Utils::copyDir($from . DIRECTORY_SEPARATOR . $file, $to . DIRECTORY_SEPARATOR . $file, false);
                 } else {
                     copy($from . DIRECTORY_SEPARATOR . $file, $to . DIRECTORY_SEPARATOR . $file);
                 }

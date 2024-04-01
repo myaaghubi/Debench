@@ -69,7 +69,7 @@ class Debench
         $currentPath = __DIR__;
         $basePath = $this->hype['base'];
 
-        $uiPath = $basePath . '/' . $this->hype['ui'] . '/';
+        $uiPath = $basePath . '/' . $this->hype['ui'];
         $uiPathFull = $uiPath . '/debench';
 
         // for assets
