@@ -1,5 +1,5 @@
 # Debench
-<code style="color : #FFD700">Note: It is under development</code>
+<code style="color : #FFD700">Note: There is not much for this version yet, be patient.</code>
 
 A small debug/benchmark helper for PHP
 
@@ -7,7 +7,7 @@ A small debug/benchmark helper for PHP
 
 Use composer:
 ```shell
-composer require myaaghubi/debench:"dev-main"
+composer require myaaghubi/debench
 ```
 Then have it like:
 ```php
