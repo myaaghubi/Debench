@@ -16,14 +16,14 @@ class Debench
 {
     private array $hype;
 
-    private mixed $checkPoints;
+    private array $checkPoints;
     private int $ramUsageMax;
 
     private int $lastCheckPointInMS;
     private int $lastCheckPointNumber;
 
     /**
-     * Debench Constructor
+     * Debench constructor
      *
      * @return void
      */
@@ -47,11 +47,44 @@ class Debench
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
         $this->hype['base'] = dirname(($backtrace[0])['file']);
 
+        // check for UI
+        $this->checkUI();
+
         register_shutdown_function(function () {
             // to calculate some stuff
             $this->calculateExecutionTime();
             print $this->makeOutput();
         });
+    }
+
+
+    /**
+     * Copy the template from ui dir into your webroot dir if
+     * it doesn't exist
+     *
+     * @return void
+     */
+    public function checkUI(): void
+    {
+        $currentPath = __DIR__;
+        $basePath = $this->hype['base'];
+
+        $uiPath = $basePath . '/' . $this->hype['ui'] . '/';
+        $uiPathFull = $uiPath . '/debench';
+
+        // for assets
+        if (!is_dir($uiPath)) {
+            if (!is_dir($basePath) || !is_writable($basePath)) {
+                throw new \Exception("Directory not exists or not writable! `$basePath` ", 500);
+            }
+
+            @mkdir($uiPath);
+        }
+
+        // for assets
+        if (!is_dir($uiPathFull)) {
+            Utils::copyDir($currentPath . '/ui', $uiPathFull);
+        }
     }
 
 
@@ -67,19 +100,19 @@ class Debench
             return;
         }
 
+        if ($this->lastCheckPointInMS == 0) {
+            $currentTime = $this->getRequestTime();
+        }
+
+        $currentTime = $this->getCurrentTime();
+        $ramUsage = $this->getRamUsagePeak();
+
         if (empty($tag)) {
             $tag = 'point ' . ($this->lastCheckPointNumber + 1);
         }
 
         // just trying to separate duplicate tags from each other
         $tag .= '#' . ($this->lastCheckPointNumber + 1);
-
-        $currentTime = $this->getCurrentTime();
-        $ramUsage = $this->getRamUsagePeak();
-
-        if ($this->lastCheckPointInMS == 0) {
-            $currentTime = $this->getRequestTime();
-        }
 
 
         // generates a backtrace
@@ -121,14 +154,14 @@ class Debench
         $prevCP = null;
         foreach ($this->checkPoints as $key => $cp) {
             if (!empty($prevKey) && $prevCP != null) {
-                $this->checkPoints[$prevKey]->setTimestamp($cp->getTimeStamp() - $prevCP->getTimeStamp());
+                $this->checkPoints[$prevKey]->setTimestamp($cp->getTimestamp() - $prevCP->getTimestamp());
             }
 
             $prevKey = $key;
             $prevCP = $cp;
         }
 
-        $this->checkPoints[$prevKey]->setTimestamp($currentTime - $prevCP->getTimeStamp());
+        $this->checkPoints[$prevKey]->setTimestamp($currentTime - $prevCP->getTimestamp());
     }
 
 
@@ -170,18 +203,26 @@ class Debench
      *
      * @return array<string,object>
      */
-    private function getCheckPoints(): mixed
+    private function getCheckPoints(): array
     {
+        if (!$this->checkPoints) {
+            return [];
+        }
         return $this->checkPoints;
     }
+
 
     /**
      * Get the max value of ram usage happened till now
      *
-     * @return int
+     * @param  bool $formatted
+     * @return int|string
      */
-    public function getRamUsageMax(): int
+    public function getRamUsageMax(bool $formatted=false): int|string
     {
+        if ($formatted)
+            return $this->getFormattedBytes($this->ramUsageMax);
+
         return $this->ramUsageMax;
     }
 
@@ -189,12 +230,18 @@ class Debench
     /**
      * Get the real ram usage
      *
-     * @return int
+     * @param  bool $formatted
+     * @return int|string
      */
-    public function getRamUsagePeak(): int
+    public function getRamUsagePeak(bool $formatted=false): int|string
     {
         // true => memory_real_usage
-        return memory_get_peak_usage(true);
+        $peak = memory_get_peak_usage(true);
+
+        if ($formatted)
+            return $this->getFormattedBytes($peak);
+
+        return $peak;
     }
 
 
@@ -252,7 +299,7 @@ class Debench
 
 
     /**
-     * Get the count of all loaded files in project 
+     * Get the count of all loaded files 
      *
      * @return int
      */
@@ -280,7 +327,7 @@ class Debench
      *
      * @return string
      */
-    public function makeOutput(): string
+    private function makeOutput(): string
     {
         $fullTime = $this->getExecutionTime() < 1 ? 1 : $this->getExecutionTime();
 
@@ -298,11 +345,11 @@ class Debench
 
         return Template::render($this->hype['base'] . '/' . $this->hype['ui'] . '/debench/widget.htm', [
             'base' => $this->hype['ui'],
-            'ramUsageMax' => $this->getFormattedBytes($this->ramUsageMax),
+            'ramUsageMax' => $this->getRamUsageMax(true),
             'includedFilesCount' => $this->getLoadedFilesCount(),
             'checkPoints' => $this->getLastCheckPointNumber(),
             'log' => $log,
-            'fullExecTime' => $fullTime
+            'fullExecTime' => $this->getExecutionTime()
         ]);
     }
 }
