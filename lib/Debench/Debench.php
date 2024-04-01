@@ -106,25 +106,19 @@ class Debench
             $tag = 'point ' . ($this->lastCheckPointNumber + 1);
         }
 
-        // just trying to separate duplicate tags from each other
+        // to avoid duplicate tags(keys)
         $tag .= '#' . ($this->lastCheckPointNumber + 1);
-
-
-        // generates a backtrace
-        $backtrace = debug_backtrace();
-        // shift an element off the beginning of array
-        $caller = array_shift($backtrace);
-
-        // get the file address that checkPoint() called from
-        $file = $caller['file'];
-        // get the line number that checkPoint() called from
-        $line = $caller['line'];
+        
+        $dbc = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+        $dbcIndex = 0;
 
         // specify calls from self class
-        if (strrpos($caller['file'], __FILE__) !== false) {
-            $line = 0;
-            $file = '';
+        if (strrpos(($dbc[$dbcIndex])['file'], __FILE__) !== false) {
+            $dbcIndex = 1;
         }
+        
+        $file = ($dbc[$dbcIndex])['file'];
+        $line = ($dbc[$dbcIndex])['line'];
 
         $checkPoint = new CheckPoint($currentTime, $ramUsage, $file, $line);
         $this->checkPoints[$tag] = $checkPoint;
