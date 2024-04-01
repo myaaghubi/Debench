@@ -1,4 +1,6 @@
 # Debench
+<code style="color : #FFD700">Note: It is under development</code>
+
 A small debug/benchmark helper for PHP
 
 ## License
