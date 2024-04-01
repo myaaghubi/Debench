@@ -13,19 +13,24 @@ Then have it like:
 ```php
 require __DIR__ . '/vendor/autoload.php';
 
-// call it from your index.php then
-// check the webpage with your browser
+// call it from your index.php
+// before anything then check
+// the webpage with your browser
 $debench = new DEBENCH\Debench();
 
 sleep(1);
 
-// after a second
+// after a seconds
 $debench->newPoint("step one");
 
 sleep(2);
 
 // after two more second
 $debench->newPoint("step two");
+```
+For production mode just put a flag:
+```php
+$debench = new DEBENCH\Debench(false);
 ```
 
 ## License
