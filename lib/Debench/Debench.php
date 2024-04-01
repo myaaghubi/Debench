@@ -19,6 +19,8 @@ class Debench
     private array $checkPoints;
     private int $ramUsageMax;
 
+    private int $initPointMS;
+    private int $endPointMS;
     private int $lastCheckPointInMS;
     private int $lastCheckPointNumber;
 
@@ -40,7 +42,8 @@ class Debench
         $this->lastCheckPointInMS = 0;
         $this->lastCheckPointNumber = 0;
 
-        $this->newPoint('debench init');
+        $initCP = $this->newPoint('debench init');
+        $this->initPointMS = $initCP->getTimestamp();
 
         $this->hype['ui'] = rtrim($ui, '/');
 
@@ -92,18 +95,10 @@ class Debench
      * Add a new checkpoint
      * 
      * @param  string $tag
-     * @return void
+     * @return object
      */
-    public function newPoint(string $tag = ''): void
+    public function newPoint(string $tag = ''): object
     {
-        if (!$this->active) {
-            return;
-        }
-
-        if ($this->lastCheckPointInMS == 0) {
-            $currentTime = $this->getRequestTime();
-        }
-
         $currentTime = $this->getCurrentTime();
         $ramUsage = $this->getRamUsagePeak();
 
@@ -131,12 +126,15 @@ class Debench
             $file = '';
         }
 
-        $this->checkPoints[$tag] = new CheckPoint($currentTime, $ramUsage, $file, $line);
+        $checkPoint = new CheckPoint($currentTime, $ramUsage, $file, $line);
+        $this->checkPoints[$tag] = $checkPoint;
 
         $this->ramUsageMax = max($ramUsage, $this->ramUsageMax);
 
         $this->lastCheckPointInMS = $currentTime;
         $this->lastCheckPointNumber += 1;
+
+        return $checkPoint; 
     }
 
 
@@ -148,7 +146,7 @@ class Debench
     private function calculateExecutionTime(): void
     {
         // may the below loop take some time
-        $currentTime = $this->getCurrentTime();
+        $this->endPointMS = $this->getCurrentTime();
 
         $prevKey = '';
         $prevCP = null;
@@ -161,7 +159,7 @@ class Debench
             $prevCP = $cp;
         }
 
-        $this->checkPoints[$prevKey]->setTimestamp($currentTime - $prevCP->getTimestamp());
+        $this->checkPoints[$prevKey]->setTimestamp($this->endPointMS - $prevCP->getTimestamp());
     }
 
 
@@ -252,7 +250,9 @@ class Debench
      */
     public function getExecutionTime(): int
     {
-        return $this->getCurrentTime() - $this->getRequestTime();
+        // what about loads before Debench such as composer !?
+        // return $this->getCurrentTime() - $this->getRequestTime();
+        return $this->endPointMS - $this->initPointMS;
     }
 
 
@@ -323,13 +323,13 @@ class Debench
 
 
     /**
-     * Get formatted log
+     * Make formatted output
      *
      * @return string
      */
     private function makeOutput(): string
     {
-        $fullTime = $this->getExecutionTime() < 1 ? 1 : $this->getExecutionTime();
+        $eTime = $this->getExecutionTime();
 
         $log = '';
         foreach ($this->checkPoints as $key => $cp) {
@@ -339,7 +339,7 @@ class Debench
                 "lineNumber" => $cp->getLineNumber(),
                 "timestamp" => $cp->getTimestamp(),
                 "memory" => $this->getFormattedBytes($cp->getMemory()),
-                "percent" => round($cp->getTimestamp() / $fullTime * 100),
+                "percent" => round($cp->getTimestamp() / ($eTime>1?$eTime:1) * 100),
             ]);
         }
 
@@ -349,7 +349,7 @@ class Debench
             'includedFilesCount' => $this->getLoadedFilesCount(),
             'checkPoints' => $this->getLastCheckPointNumber(),
             'log' => $log,
-            'fullExecTime' => $this->getExecutionTime()
+            'fullExecTime' => $eTime
         ]);
     }
 }
