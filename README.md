@@ -1,5 +1,5 @@
 # Debench
-<code style="color : #FFD700">Note: There is not much for this version yet, be patient.</code>
+<code style="color : #FFD700">Note: There is not much in this project yet, be patient.</code>
 
 A small debug/benchmark helper for PHP
 
@@ -13,11 +13,19 @@ Then have it like:
 ```php
 require __DIR__ . '/vendor/autoload.php';
 
-$debench = new DEBENCH\Debench(true, 'theme');
-for ($i=0; $i<3; $i++) {
-    sleep(1);
-    $debench->newPoint();
-}
+// call it from your index.php then
+// check the webpage with your browser
+$debench = new DEBENCH\Debench();
+
+sleep(1);
+
+// after a second
+$debench->newPoint("step one");
+
+sleep(2);
+
+// after two more second
+$debench->newPoint("step two");
 ```
 
 ## License
