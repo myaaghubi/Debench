@@ -1,0 +1,15 @@
+{
+    "name": "myaaghubi/debench",
+	"description": "A small debug/benchmark helper for PHP",
+	"keywords": ["benchmark", "debug", "tool", "debench"],
+	"homepage": "https://github.com/myaaghubi/Debench",
+	"license": "MIT",
+	"autoload": {
+		"classmap": ["lib/"]
+	},
+    "config": {
+        "platform": {
+            "php": "8.0"
+        }
+    }
+}
