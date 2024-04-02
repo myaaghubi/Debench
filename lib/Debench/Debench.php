@@ -14,10 +14,8 @@ namespace DEBENCH;
 
 class Debench
 {
-    private array $hype;
-
     private array $checkPoints;
-    private int $ramUsageMax;
+    private string $path;
 
     private int $initPointMS;
     private int $endPointMS;
@@ -35,20 +33,17 @@ class Debench
             return;
         }
 
-        $this->hype = [];
-
         $this->checkPoints = [];
-        $this->ramUsageMax = 0;
         $this->lastCheckPointInMS = 0;
         $this->lastCheckPointNumber = 0;
 
-        $initCP = $this->newPoint('debench init');
+        $initCP = $this->newPoint('debench');
         $this->initPointMS = $initCP->getTimestamp();
 
-        $this->hype['ui'] = rtrim($ui, '/');
+        $this->ui = rtrim($ui, '/');
 
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-        $this->hype['base'] = dirname(($backtrace[0])['file']);
+        $this->path = dirname(($backtrace[0])['file']);
 
         // check for UI
         $this->checkUI();
@@ -70,9 +65,9 @@ class Debench
     public function checkUI(): void
     {
         $currentPath = __DIR__;
-        $basePath = $this->hype['base'];
+        $basePath = $this->path;
 
-        $uiPath = $basePath . '/' . $this->hype['ui'];
+        $uiPath = $basePath . '/' . $this->ui;
         $uiPathFull = $uiPath . '/debench';
 
         // for assets
@@ -100,7 +95,7 @@ class Debench
     public function newPoint(string $tag = ''): object
     {
         $currentTime = $this->getCurrentTime();
-        $ramUsage = $this->getRamUsagePeak();
+        $ramUsage = $this->getRamUsage();
 
         if (empty($tag)) {
             $tag = 'point ' . ($this->lastCheckPointNumber + 1);
@@ -122,8 +117,6 @@ class Debench
 
         $checkPoint = new CheckPoint($currentTime, $ramUsage, $file, $line);
         $this->checkPoints[$tag] = $checkPoint;
-
-        $this->ramUsageMax = max($ramUsage, $this->ramUsageMax);
 
         $this->lastCheckPointInMS = $currentTime;
         $this->lastCheckPointNumber += 1;
@@ -205,22 +198,25 @@ class Debench
 
 
     /**
-     * Get the max value of ram usage happened till now
+     * Get the ram usage
      *
      * @param  bool $formatted
      * @return int|string
      */
-    public function getRamUsageMax(bool $formatted=false): int|string
+    public function getRamUsage(bool $formatted=false): int|string
     {
-        if ($formatted)
-            return $this->getFormattedBytes($this->ramUsageMax);
+        // true => memory_real_usage
+        $peak = memory_get_usage();
 
-        return $this->ramUsageMax;
+        if ($formatted)
+            return Utils::toFormattedBytes($peak);
+
+        return $peak;
     }
 
 
     /**
-     * Get the real ram usage
+     * Get the real ram usage (peak)
      *
      * @param  bool $formatted
      * @return int|string
@@ -231,7 +227,7 @@ class Debench
         $peak = memory_get_peak_usage(true);
 
         if ($formatted)
-            return $this->getFormattedBytes($peak);
+            return Utils::toFormattedBytes($peak);
 
         return $peak;
     }
@@ -274,25 +270,6 @@ class Debench
 
 
     /**
-     * format bytes with KB, MB, etc.
-     *
-     * @param  int $size
-     * @return string
-     */
-    private function getFormattedBytes(int $size = 0): string
-    {
-        if ($size == 0) {
-            return '0 B';
-        }
-
-        $base = log($size, 1024);
-        $suffixes = array('B', 'KB', 'MB', 'GB', 'TB');
-
-        return round(pow(1024, $base - floor($base))) . ' ' . $suffixes[floor($base)];
-    }
-
-
-    /**
      * Get the count of all loaded files 
      *
      * @return int
@@ -327,19 +304,20 @@ class Debench
 
         $log = '';
         foreach ($this->checkPoints as $key => $cp) {
-            $log .= Template::render($this->hype['base'] . '/' . $this->hype['ui'] . '/debench/widget.log.htm', [
+            $log .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.htm', [
                 "name" => $this->getTagName($key),
                 "path" => $cp->getPath(),
                 "lineNumber" => $cp->getLineNumber(),
                 "timestamp" => $cp->getTimestamp(),
-                "memory" => $this->getFormattedBytes($cp->getMemory()),
+                "memory" => Utils::toFormattedBytes($cp->getMemory()),
                 "percent" => round($cp->getTimestamp() / ($eTime>1?$eTime:1) * 100),
             ]);
         }
 
-        return Template::render($this->hype['base'] . '/' . $this->hype['ui'] . '/debench/widget.htm', [
-            'base' => $this->hype['ui'],
-            'ramUsageMax' => $this->getRamUsageMax(true),
+        return Template::render($this->path . '/' . $this->ui . '/debench/widget.htm', [
+            'base' => $this->ui,
+            'ramUsagePeak' => $this->getRamUsagePeak(true),
+            'ramUsage' => $this->getRamUsage(true),
             'includedFilesCount' => $this->getLoadedFilesCount(),
             'checkPoints' => $this->getLastCheckPointNumber(),
             'preloadTime' => $this->initPointMS - $this->getRequestTime(),
