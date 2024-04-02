@@ -27,9 +27,9 @@ class Debench
      *
      * @return void
      */
-    public function __construct(private bool $active = true, private string $ui = 'theme')
+    public function __construct(private bool $enable = true, private string $ui = 'theme')
     {
-        if (!$this->active) {
+        if (!$this->enable) {
             return;
         }
 
@@ -49,7 +49,9 @@ class Debench
         $this->checkUI();
 
         register_shutdown_function(function () {
-            // to calculate some stuff
+            if (!$this->enable) {
+                return;
+            }
             $this->calculateExecutionTime();
             print $this->makeOutput();
         });
@@ -94,6 +96,10 @@ class Debench
      */
     public function newPoint(string $tag = ''): object
     {
+        if (!$this->enable) {
+            return;
+        }
+
         $currentTime = $this->getCurrentTime();
         $ramUsage = $this->getRamUsage();
 
@@ -157,7 +163,19 @@ class Debench
      */
     public function isEnable(): bool
     {
-        return $this->active;
+        return $this->enable;
+    }
+
+
+    /**
+     * Set Debench enable
+     *
+     * @param  bool $enable
+     * @return void
+     */
+    public function setEnable(bool $enable): void
+    {
+        $this->enable = $enable;
     }
 
 
