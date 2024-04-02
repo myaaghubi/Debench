@@ -21,7 +21,8 @@
       <div class="debench-panel debench-main-panel">
         <ul>
           <li data-target="debench-checkpoints-block">
-            Time: <b>{{@fullExecTime}} ms</b> (<span title="Preload Time: {{@preloadTime}} ms">{{@preloadTime}} ms</span>),
+            Time: <b>{{@fullExecTime}} ms</b> (<span title="Preload Time: {{@preloadTime}} ms">{{@preloadTime}}
+              ms</span>),
             Memory: <b>{{@ramUsage}}</b> (<span title="Ram Usage Peak: {{@ramUsagePeak}} ms">{{@ramUsagePeak}}</span>),
             Included: <b>{{@includedFilesCount}}</b> files
           </li>
@@ -33,11 +34,14 @@
     </li>
   </ul>
 
-
   <script>
     var debenchBase = '{{@base}}';
     var debenchPanelMain = '{{@debench.panel.main}}';
     var debenchPanelLast = '';
+
+    if (typeof jQuery != 'undefined') {
+      $('script[src*="debench/assets/js/jquery.min.js"]').remove();
+    }
   </script>
   <script src="{{@base}}/debench/assets/js/jquery.min.js"></script>
   <script src="{{@base}}/debench/assets/js/debench.js"></script>
