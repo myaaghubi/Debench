@@ -52,4 +52,23 @@ class Utils
 
         closedir($dir);
     }
+
+
+    /**
+     * Format bytes with B, KB, MB, 'GB', 'TB' etc.
+     *
+     * @param  int $size
+     * @return string
+     */
+    public static function toFormattedBytes(int $size = 0): string
+    {
+        if ($size == 0) {
+            return '0 B';
+        }
+
+        $base = log($size, 1024);
+        $suffixes = array('B', 'KB', 'MB', 'GB', 'TB');
+
+        return round(pow(1024, $base - floor($base))) . ' ' . $suffixes[floor($base)];
+    }
 }

@@ -19,11 +19,13 @@ require __DIR__ . '/vendor/autoload.php';
 $debench = new DEBENCH\Debench();
 
 sleep(1);
+$st = str_repeat("Debench!", 1000);
 
 // after a seconds
 $debench->newPoint("step one");
 
 sleep(2);
+$st .= str_repeat("Debench!", 1000);
 
 // after two more second
 $debench->newPoint("step two");
@@ -31,6 +33,8 @@ $debench->newPoint("step two");
 For production mode just put a flag:
 ```php
 $debench = new DEBENCH\Debench(false);
+// or
+$debench->setEnable(false);
 ```
 
 ## License
