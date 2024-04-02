@@ -2,8 +2,8 @@ debench {
   color: #555!important;
   position: fixed!important;
   z-index: 1000000!important;
-  bottom: 5px!important;
-  left: 5px!important;
+  bottom: 0px!important;
+  left: 0px!important;
 }
 debench ul.debench-main-block {
   margin: 0px!important;
@@ -22,7 +22,8 @@ debench .debench-panel {
   direction: ltr!important;
   text-align: left!important;
   border: 1px solid #dee2e6!important;
-  border-radius: 5px!important;
+  border-width: 1px 1px 0 0;
+  border-radius: 0 5px 0 0!important;
   font-size: 13px!important;
   background: #f8f9fa!important;
   color: #555!important;
