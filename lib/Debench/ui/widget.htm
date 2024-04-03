@@ -4,14 +4,26 @@
   <ul class="debench-main-block">
     <li class="debench-checkpoints-block">
       <div class="debench-panel">
-        {{@log}}
+        {{@logTime}}
+      </div>
+    </li>
+    <li class="debench-request-block">
+      <div class="debench-panel">
+        {{@requestLog}}
+      </div>
+    </li>
+    <li class="debench-session-block">
+      <div class="debench-panel">
+        {{@sessionLog}}
       </div>
     </li>
     <li>
       <div class="debench-panel debench-main-panel-minimal">
         <ul>
           <li>
-            <b>{{@fullExecTime}} ms</b> (<span title="Preload time: {{@preloadTime}} ms">{{@preloadTime}} ms</span>),
+            <b>{{@fullExecTime}} ms</b> / 
+            <b>{{@ramUsage}}</b> / 
+            <b>{{@includedFilesCount}}</b>
           </li>
           <li class="debench-toggle" data-target="debench-panel-toggle">
             <b>&#8651</b>
@@ -26,7 +38,17 @@
             Memory: <b>{{@ramUsage}}</b> (<span title="Ram Usage Peak: {{@ramUsagePeak}} ms">{{@ramUsagePeak}}</span>),
             Included: <b>{{@includedFilesCount}}</b> files
           </li>
-          <li class="debench-toggle" data-target="debench-panel-main">
+        </ul>
+        <ul>
+          <li data-target="debench-request-block">
+            Request: <b>{{@request}}</b>
+          </li>
+        </ul>
+        <ul>
+          <li data-target="debench-session-block">
+            Session: <b>{{@session}}</b>
+          </li>
+          <li class="debench-toggle" data-target="debench-panel-toggle">
             <b>&#8651</b>
           </li>
         </ul>
@@ -36,7 +58,7 @@
 
   <script>
     var debenchBase = '{{@base}}';
-    var debenchPanelMain = '{{@debench.panel.main}}';
+    var debenchPanelMain = '{{@debench-main-panel}}';
     var debenchPanelLast = '';
 
     if (typeof jQuery != 'undefined') {
