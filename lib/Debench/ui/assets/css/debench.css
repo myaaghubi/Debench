@@ -10,8 +10,9 @@ debench ul.debench-main-block {
   padding: 0!important;
   list-style-type: none!important;
 }
-debench ul.debench-main-block > li {
-  padding:5px 0 0 0;
+debench ul.debench-main-block > li:not(:last-child) {
+  padding:0px 0 0 0;
+  margin:1px 0 -1px 0;
   line-height: 0%!important;
 }
 debench ul.debench-main-block > li:not(:last-child) {
@@ -22,7 +23,7 @@ debench .debench-panel {
   direction: ltr!important;
   text-align: left!important;
   border: 1px solid #dee2e6!important;
-  border-width: 1px 1px 0 0;
+  border-width: 1px 1px 0 0!important;
   border-radius: 0 5px 0 0!important;
   font-size: 13px!important;
   background: #f8f9fa!important;
@@ -35,6 +36,10 @@ debench .debench-panel {
 debench .debench-panel span[title] {
   text-decoration: underline;
 }
+debench .debench-panel-title span {
+  text-decoration: underline!important;
+  font-style:italic!important;
+}
 debench .debench-main-panel-minimal {
   display: block;
 }
@@ -45,6 +50,7 @@ debench .debench-main-panel, debench .debench-main-panel-minimal {
   padding: 0px;
 }
 debench .debench-main-panel ul, debench .debench-main-panel-minimal ul {
+  float:left;
   padding: 0;
   margin: 0px!important;
   list-style-type: none!important;
