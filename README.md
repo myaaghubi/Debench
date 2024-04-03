@@ -3,6 +3,9 @@
 
 A small debug/benchmark helper for PHP
 
+![myaaghubi/debench-debench-minimal](screenshot/screenshot-minimal.png)
+![myaaghubi/debench-debench-fullsize](screenshot/screenshot-fullsize.png)
+
 # How to use
 
 Use composer:
@@ -13,9 +16,8 @@ Then have it like:
 ```php
 require __DIR__ . '/vendor/autoload.php';
 
-// call it from your index.php
-// before anything then check
-// the webpage with your browser
+// call it from your index.php after autoload 
+// then check the webpage with your browser
 $debench = new DEBENCH\Debench();
 
 sleep(1);
@@ -27,7 +29,7 @@ $debench->newPoint("step one");
 sleep(2);
 $st .= str_repeat("Debench!", 1000);
 
-// after two more second
+// after two more seconds
 $debench->newPoint("step two");
 ```
 For production mode just put a flag:

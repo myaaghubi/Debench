@@ -1,31 +1,54 @@
 <debench>
   <link rel="stylesheet" type="text/css" href="{{@base}}/debench/assets/css/debench.css">
 
-  <ul class="debench-pannels">
-    <li class="panel-points">
-      <div class="panel">
-        {{@log}}
+  <ul class="debench-main-block">
+    <li class="debench-checkpoints-block">
+      <div class="debench-panel">
+        {{@logTime}}
+      </div>
+    </li>
+    <li class="debench-request-block">
+      <div class="debench-panel">
+        {{@requestLog}}
+      </div>
+    </li>
+    <li class="debench-session-block">
+      <div class="debench-panel">
+        {{@sessionLog}}
       </div>
     </li>
     <li>
-      <div class="panel main-panel-minimal">
+      <div class="debench-panel debench-main-panel-minimal">
         <ul>
           <li>
-            <b>{{@fullExecTime}} ms</b> (<span title="Preload time: {{@preloadTime}} ms">{{@preloadTime}} ms</span>),
+            <b>{{@fullExecTime}} ms</b> / 
+            <b>{{@ramUsage}}</b> / 
+            <b>{{@includedFilesCount}}</b>
           </li>
-          <li class="debench-toggle" data-target="panel-toggle">
+          <li class="debench-toggle" data-target="debench-panel-toggle">
             <b>&#8651</b>
           </li>
         </ul>
       </div>
-      <div class="panel main-panel">
+      <div class="debench-panel debench-main-panel">
         <ul>
-          <li data-target="panel-points">
-            Time: <b>{{@fullExecTime}} ms</b> (<span title="Preload Time: {{@preloadTime}} ms">{{@preloadTime}} ms</span>),
+          <li data-target="debench-checkpoints-block">
+            Time: <b>{{@fullExecTime}} ms</b> (<span title="Preload Time: {{@preloadTime}} ms">{{@preloadTime}}
+              ms</span>),
             Memory: <b>{{@ramUsage}}</b> (<span title="Ram Usage Peak: {{@ramUsagePeak}} ms">{{@ramUsagePeak}}</span>),
             Included: <b>{{@includedFilesCount}}</b> files
           </li>
-          <li class="debench-toggle" data-target="panel-main">
+        </ul>
+        <ul>
+          <li data-target="debench-request-block">
+            Request: <b>{{@request}}</b>
+          </li>
+        </ul>
+        <ul>
+          <li data-target="debench-session-block">
+            Session: <b>{{@session}}</b>
+          </li>
+          <li class="debench-toggle" data-target="debench-panel-toggle">
             <b>&#8651</b>
           </li>
         </ul>
@@ -33,11 +56,14 @@
     </li>
   </ul>
 
-
   <script>
     var debenchBase = '{{@base}}';
-    var debenchPanelMain = '{{@panel.main}}';
+    var debenchPanelMain = '{{@debench-main-panel}}';
     var debenchPanelLast = '';
+
+    if (typeof jQuery != 'undefined') {
+      $('script[src*="debench/assets/js/jquery.min.js"]').remove();
+    }
   </script>
   <script src="{{@base}}/debench/assets/js/jquery.min.js"></script>
   <script src="{{@base}}/debench/assets/js/debench.js"></script>
