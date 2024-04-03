@@ -97,7 +97,7 @@ class Debench
     public function newPoint(string $tag = ''): object
     {
         if (!$this->enable) {
-            return;
+            return null;
         }
 
         $currentTime = $this->getCurrentTime();
@@ -320,9 +320,10 @@ class Debench
     {
         $eTime = $this->getExecutionTime();
 
-        $log = '';
+        // ------- logTime
+        $logTime = '';
         foreach ($this->checkPoints as $key => $cp) {
-            $log .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.htm', [
+            $logTime .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.checkpoint.htm', [
                 "name" => $this->getTagName($key),
                 "path" => $cp->getPath(),
                 "lineNumber" => $cp->getLineNumber(),
@@ -332,6 +333,34 @@ class Debench
             ]);
         }
 
+        // ------- logRequest
+        $logRequest = '';
+        foreach ($_REQUEST as $key => $value) {
+            $logRequest .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.request.htm', [
+                "key" => $key,
+                "value" => $value
+            ]);
+        }
+
+        if (!$_REQUEST) {
+            $logRequest = 'No REQUEST Yet!';
+        }
+
+        // ------- logSession
+        session_start();
+        $logSession = '';
+        foreach ($_SESSION as $key => $value) {
+            $logSession .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.request.htm', [
+                "key" => $key,
+                "value" => $value
+            ]);
+        }
+
+        if (!$_SESSION) {
+            $logSession = 'No SESSION Yet!';
+        }
+
+        // ------- the main widget
         return Template::render($this->path . '/' . $this->ui . '/debench/widget.htm', [
             'base' => $this->ui,
             'ramUsagePeak' => $this->getRamUsagePeak(true),
@@ -339,7 +368,11 @@ class Debench
             'includedFilesCount' => $this->getLoadedFilesCount(),
             'checkPoints' => $this->getLastCheckPointNumber(),
             'preloadTime' => $this->initPointMS - $this->getRequestTime(),
-            'log' => $log,
+            'request' => count($_REQUEST??[]),
+            'requestLog' => $logRequest,
+            'session' => count($_SESSION??[]),
+            'sessionLog' => $logSession,
+            'logTime' => $logTime,
             'fullExecTime' => $eTime
         ]);
     }
