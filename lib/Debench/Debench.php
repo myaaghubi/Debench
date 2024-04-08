@@ -27,6 +27,9 @@ class Debench
     /**
      * Debench constructor
      *
+     * @param  bool $enable
+     * @param  string $ui
+     * @param  string $path
      * @return void
      */
     public function __construct(private bool $enable = true, private string $ui = 'theme', private string $path = '')
@@ -411,7 +414,10 @@ class Debench
 
 
     /**
-     * gets the instance via lazy initialization (created on first usage)
+     * Add a new checkpoint
+     * 
+     * @param  string $tag
+     * @return object
      */
     public static function point(string $tag = ''): void
     {
@@ -420,7 +426,11 @@ class Debench
 
 
     /**
-     * gets the instance via lazy initialization (created on first usage)
+     * Gets the instance
+     * 
+     * @param  bool $enable
+     * @param  string $ui
+     * @return Debench
      */
     public static function getInstance($enable = true, string $ui = 'theme'): Debench
     {
@@ -437,8 +447,10 @@ class Debench
 
     /**
      * Prevent from being unserialized
+     * 
+     * @return void
      */
-    public function __wakeup()
+    public function __wakeup(): void
     {
         throw new \Exception("Cannot unserialize singleton");
     }
