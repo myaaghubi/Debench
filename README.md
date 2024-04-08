@@ -1,5 +1,4 @@
 # Debench
-<code style="color : #FFD700">Note: There is not much in this project yet, be patient.</code>
 
 A small debug/benchmark helper for PHP
 
@@ -14,27 +13,34 @@ composer require myaaghubi/debench
 ```
 Then have it like:
 ```php
+namespace DEBENCH;
+
 require __DIR__ . '/vendor/autoload.php';
 
 // call it from your index.php after autoload 
 // then check the webpage with your browser
-$debench = new DEBENCH\Debench();
+// $debench = new Debench();
+Debench::getInstance();
 
-sleep(1);
-$st = str_repeat("Debench!", 1000);
+$st = str_repeat("Debench!", 10000);
 
-// after a seconds
-$debench->newPoint("step one");
+// step one
+// $debench->newPoint("step one");
+Debench::point('step one');
 
-sleep(2);
-$st .= str_repeat("Debench!", 1000);
+$st .= str_repeat("Debench!", 10000);
 
-// after two more seconds
-$debench->newPoint("step two");
+// step two
+Debench::point("step two");
 ```
-For production mode just put a flag:
+For `minimal` mode:
 ```php
-$debench = new DEBENCH\Debench(false);
+$debench->setMinimal(false);
+```
+For `production` mode
+```php
+// this one is better
+$debench = new Debench(false);
 // or
 $debench->setEnable(false);
 ```

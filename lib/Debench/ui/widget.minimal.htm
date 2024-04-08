@@ -1,0 +1,27 @@
+<debench>
+  <link rel="stylesheet" type="text/css" href="{{@base}}/debench/assets/css/debench.css">
+
+  <ul class="debench-main-block">
+    <li>
+      <div class="debench-panel debench-main-panel-minimal">
+        <ul>
+          <li>
+            <b>{{@fullExecTime}} ms</b> / 
+            <b>{{@ramUsage}}</b> / 
+            <b>{{@includedFilesCount}}</b>
+          </li>
+        </ul>
+      </div>
+    </li>
+  </ul>
+
+  <script>
+    var debenchBase = '{{@base}}';
+
+    if (typeof jQuery != 'undefined') {
+      $('script[src*="debench/assets/js/jquery.min.js"]').remove();
+    }
+  </script>
+  <script src="{{@base}}/debench/assets/js/jquery.min.js"></script>
+  <script src="{{@base}}/debench/assets/js/debench.js"></script>
+</debench>
