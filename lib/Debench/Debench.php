@@ -16,19 +16,20 @@ class Debench
 {
     private bool $minimal;
     private array $checkPoints;
-    private string $path;
 
     private int $initPointMS;
     private int $endPointMS;
     private int $lastCheckPointInMS;
     private int $lastCheckPointNumber;
 
+    private static ?Debench $instance = null;
+
     /**
      * Debench constructor
      *
      * @return void
      */
-    public function __construct(private bool $enable = true, private string $ui = 'theme')
+    public function __construct(private bool $enable = true, private string $ui = 'theme', private string $path = '')
     {
         if (!$this->enable) {
             return;
@@ -39,13 +40,14 @@ class Debench
         $this->lastCheckPointInMS = 0;
         $this->lastCheckPointNumber = 0;
 
-        $initCP = $this->newPoint('debench');
-        $this->initPointMS = $initCP->getTimestamp();
+        $this->newPoint('debench');
 
         $this->ui = rtrim($ui, '/');
 
-        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-        $this->path = dirname(($backtrace[0])['file']);
+        if (empty($path)) {
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            $this->path = dirname(($backtrace[0])['file']);
+        }
 
         // check for UI
         $this->checkUI();
@@ -57,6 +59,8 @@ class Debench
             $this->calculateExecutionTime();
             print $this->makeOutput();
         });
+
+        self::$instance = $this;
     }
 
 
@@ -96,13 +100,17 @@ class Debench
      * @param  string $tag
      * @return object
      */
-    public function newPoint(string $tag = ''): object
+    public function newPoint(string $tag = ''): void
     {
         if (!$this->enable) {
-            return null;
+            return;
         }
 
         $currentTime = $this->getCurrentTime();
+        if (empty($this->initPointMS)) {
+            $this->initPointMS = $currentTime;
+        }
+
         $ramUsage = $this->getRamUsage();
 
         if (empty($tag)) {
@@ -128,8 +136,6 @@ class Debench
 
         $this->lastCheckPointInMS = $currentTime;
         $this->lastCheckPointNumber += 1;
-
-        return $checkPoint;
     }
 
 
@@ -336,12 +342,10 @@ class Debench
 
         // ------- the minimal widget
         if ($this->minimal) {
-            return Template::render($this->path . '/' . $this->ui . '/debench/widget-minimal.htm', [
+            return Template::render($this->path . '/' . $this->ui . '/debench/widget.minimal.htm', [
                 'base' => $this->ui,
-                'ramUsagePeak' => $this->getRamUsagePeak(true),
                 'ramUsage' => $this->getRamUsage(true),
                 'includedFilesCount' => $this->getLoadedFilesCount(),
-                'preloadTime' => $this->initPointMS - $this->getRequestTime(),
                 'fullExecTime' => $eTime
             ]);
         }
@@ -403,5 +407,39 @@ class Debench
             'logTime' => $logTime,
             'fullExecTime' => $eTime
         ]);
+    }
+
+
+    /**
+     * gets the instance via lazy initialization (created on first usage)
+     */
+    public static function point(string $tag = ''): void
+    {
+        self::getInstance()->newPoint($tag);
+    }
+
+
+    /**
+     * gets the instance via lazy initialization (created on first usage)
+     */
+    public static function getInstance($enable = true, string $ui = 'theme'): Debench
+    {
+        if (self::$instance === null) {
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            $path = dirname(($backtrace[0])['file']);
+
+            self::$instance = new self($enable, $ui, $path);
+        }
+
+        return self::$instance;
+    }
+
+
+    /**
+     * Prevent from being unserialized
+     */
+    public function __wakeup()
+    {
+        throw new \Exception("Cannot unserialize singleton");
     }
 }
