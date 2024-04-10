@@ -35,7 +35,7 @@ Debench::point("step two");
 ```
 For `minimal` mode:
 ```php
-$debench->setMinimal(false);
+$debench->setMinimal(true);
 ```
 For `production` mode
 ```php
