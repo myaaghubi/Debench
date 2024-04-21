@@ -21,7 +21,7 @@ class Utils
      * @param  string $to
      * @return void
      */
-    public static function copyDir(string $from, string $to, bool $checkForError=true): void
+    public static function copyDir(string $from, string $to, bool $checkForError = true): void
     {
         if ($checkForError) {
             if (!file_exists($from)) {
@@ -70,5 +70,28 @@ class Utils
         $suffixes = array('B', 'KB', 'MB', 'GB', 'TB');
 
         return round(pow(1024, $base - floor($base))) . ' ' . $suffixes[floor($base)];
+    }
+
+
+    /**
+     * Check if PHPUnit test is running
+     *
+     * @return bool
+     */
+    public static function isInTestMode(): bool
+    {
+        if (PHP_SAPI != 'cli') {
+            return false;
+        }
+
+        if (defined('PHPUNIT_COMPOSER_INSTALL') && defined('__PHPUNIT_PHAR__')) {
+            return true;
+        }
+
+        if (strpos($_SERVER['argv'][0], 'phpunit') !== false) {
+            return true;
+        }
+
+        return false;
     }
 }
