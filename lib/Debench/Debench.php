@@ -168,6 +168,17 @@ class Debench
 
 
     /**
+     * Is Debench in minimal mode
+     *
+     * @return bool
+     */
+    public function isMinimal(): bool
+    {
+        return $this->minimal;
+    }
+
+
+    /**
      * Set Debench to only minimal mode
      *
      * @param  bool $minimalMode
@@ -229,7 +240,7 @@ class Debench
      *
      * @return array<string,object>
      */
-    private function getCheckPoints(): array
+    public function getCheckPoints(): array
     {
         if (!$this->checkPoints) {
             return [];
@@ -388,8 +399,11 @@ class Debench
         }
 
         // ------- logSession
-        if (session_status() != PHP_SESSION_ACTIVE) {
-            session_start();
+        if (PHP_SAPI === 'cli') {
+            $_SESSION = array();
+        } else if (session_status() != PHP_SESSION_ACTIVE) {
+            @session_start();
+        }
 
         $logSession = '';
         foreach ($_SESSION as $key => $value) {
