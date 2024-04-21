@@ -1,4 +1,9 @@
-<div> 
-<span title='{{@path}}:{{@lineNumber}}'>{{@name}}</span>
-=> Time: <b>{{@timestamp}} ms</b> ({{@percent}}%), Memory: <b>{{@memory}}</b> 
-</div>
+<tr>
+  <td title="{{@path}}:{{@lineNumber}}">{{@name}}</td>
+  <td>=></td>
+  <td>Time: <b>{{@timestamp}} ms</b> ({{@percent}}%)</td>
+  <td>&nbsp;</td>
+  <td>Memory: <b>{{@memory}}</b></td>
+  <td>&nbsp;</td>
+  <td>{{@fileName}}:{{@lineNumber}}</td>
+</tr>
