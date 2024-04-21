@@ -353,12 +353,20 @@ class Debench
             ]);
         }
 
-        // ------- logTime
-        $logTime = '';
+        // ------- infoLog
+        $infoLog = Template::render($this->path . '/' . $this->ui . '/debench/widget.log.info.htm', [
+            "phpVersion" => SystemInfo::getPHPVersion(),
+            "opcache" => SystemInfo::getOPCacheStatus()?'On':'Off',
+            "systemAPI" => SystemInfo::getSystemAPI(),
+        ]);
+
+        // ------- timeLog
+        $timeLog = '';
         foreach ($this->checkPoints as $key => $cp) {
-            $logTime .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.checkpoint.htm', [
+            $timeLog .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.checkpoint.htm', [
                 "name" => $this->getTagName($key),
                 "path" => $cp->getPath(),
+                "fileName" => basename($cp->getPath()),
                 "lineNumber" => $cp->getLineNumber(),
                 "timestamp" => $cp->getTimestamp(),
                 "memory" => Utils::toFormattedBytes($cp->getMemory()),
@@ -382,7 +390,6 @@ class Debench
         // ------- logSession
         if (session_status() != PHP_SESSION_ACTIVE) {
             session_start();
-        }
 
         $logSession = '';
         foreach ($_SESSION as $key => $value) {
@@ -407,7 +414,8 @@ class Debench
             'requestLog' => $logRequest,
             'session' => count($_SESSION ?? []),
             'sessionLog' => $logSession,
-            'logTime' => $logTime,
+            'infoLog' => $infoLog,
+            'timeLog' => $timeLog,
             'fullExecTime' => $eTime
         ]);
     }
