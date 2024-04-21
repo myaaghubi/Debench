@@ -1,15 +1,34 @@
 {
-    "name": "myaaghubi/debench",
+	"name": "myaaghubi/debench",
 	"description": "A small debug/benchmark helper for PHP",
-	"keywords": ["benchmark", "debug", "tool", "debench"],
-	"homepage": "https://github.com/myaaghubi/Debench",
 	"license": "MIT",
-	"autoload": {
-		"classmap": ["lib/"]
+	"authors": [
+		{
+			"name": "Mohammad Yaaghubi"
+		}
+	],
+	"homepage": "https://github.com/myaaghubi/Debench",
+	"support": {
+		"issues": "https://github.com/myaaghubi/debench/issues",
+		"source": "https://github.com/myaaghubi/debench"
 	},
-    "config": {
-        "platform": {
-            "php": "8.0"
-        }
-    }
+	"keywords": [
+		"benchmark",
+		"debug",
+		"tool",
+		"debench"
+	],
+	"autoload": {
+		"classmap": [
+			"lib/"
+		]
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^9.0"
+	},
+	"config": {
+		"platform": {
+			"php": "8.0"
+		}
+	}
 }
