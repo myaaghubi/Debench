@@ -2,9 +2,18 @@
   <link rel="stylesheet" type="text/css" href="{{@base}}/debench/assets/css/debench.css">
 
   <ul class="debench-main-block">
+    <li class="debench-info-block">
+      <div class="debench-panel">
+        <table>
+        {{@infoLog}}
+        </table>
+      </div>
+    </li>
     <li class="debench-checkpoints-block">
       <div class="debench-panel">
-        {{@logTime}}
+        <table>
+        {{@timeLog}}
+        </table>
       </div>
     </li>
     <li class="debench-request-block">
@@ -28,6 +37,11 @@
         </ul>
       </div>
       <div class="debench-panel debench-main-panel">
+        <ul>
+          <li data-target="debench-info-block">
+            <image width="12px" height="12px" src="{{@base}}/debench/assets/img/info.png" style="margin-bottom:-1px;"></image>
+          </li>
+        </ul>
         <ul>
           <li data-target="debench-checkpoints-block">
             Time: <b>{{@fullExecTime}} ms</b> (<span title="Preload Time: {{@preloadTime}} ms">{{@preloadTime}}
