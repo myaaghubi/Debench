@@ -1,9 +1,15 @@
 debench {
-  color: #555!important;
+  margin:0 0 -1px 0;
   position: fixed!important;
   z-index: 1000000!important;
   bottom: 0px!important;
   left: 0px!important;
+}
+debench * {
+  font-family: tahoma!important;
+  direction: ltr!important;
+  text-align: left!important;
+  font-size: 13px!important;
 }
 debench ul.debench-main-block {
   margin: 0px!important;
@@ -12,20 +18,16 @@ debench ul.debench-main-block {
 }
 debench ul.debench-main-block > li:not(:last-child) {
   padding:0px 0 0 0;
-  margin:1px 0 -1px 0;
+  margin:0 0 -1px 0;
   line-height: 0%!important;
 }
 debench ul.debench-main-block > li:not(:last-child) {
   display: none;
 }
 debench .debench-panel {
-  font-family: tahoma!important;
-  direction: ltr!important;
-  text-align: left!important;
   border: 1px solid #dee2e6!important;
   border-width: 1px 1px 0 0!important;
   border-radius: 0 5px 0 0!important;
-  font-size: 13px!important;
   background: #f8f9fa!important;
   color: #555!important;
   padding: 5px 7px;
@@ -33,14 +35,18 @@ debench .debench-panel {
   display: inline-block;
   overflow: hidden;
 }
+debench .debench-panel td {
+  color: #555!important;
+  line-height: 150%!important;
+}
 debench .debench-panel span {
   font-style:italic!important;
   text-decoration:none!important;
 }
-debench .debench-panel span[title] {
+debench .debench-panel span[title], debench .debench-panel td[title] {
   text-decoration: underline!important;
 }
-debench .debench-panel-title span {
+debench .debench-panel-title span, debench .debench-panel-title td {
   font-style:italic!important;
   text-decoration: underline!important;
 }
