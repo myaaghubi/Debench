@@ -55,10 +55,20 @@ class Debench
         // check for UI
         $this->checkUI();
 
+
+        if (PHP_SAPI !== 'cli' && session_status() != PHP_SESSION_ACTIVE) {
+            @session_start();
+        }
+
         register_shutdown_function(function () {
             if (!$this->enable) {
                 return;
             }
+
+            if (Utils::isInTestMode()) {
+                return;
+            }
+
             $this->calculateExecutionTime();
             print $this->makeOutput();
         });
@@ -123,16 +133,21 @@ class Debench
         // to avoid duplicate tags(keys)
         $tag .= '#' . ($this->lastCheckPointNumber + 1);
 
-        $dbc = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+        $dbc = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
         $dbcIndex = 0;
 
         // specify calls from self class
-        if (strrpos(($dbc[$dbcIndex])['file'], __FILE__) !== false) {
-            $dbcIndex = 1;
+        while (count($dbc) > $dbcIndex && strrpos(($dbc[$dbcIndex])['file'], __FILE__) !== false) {
+            $dbcIndex += 1;
         }
 
         $file = ($dbc[$dbcIndex])['file'];
         $line = ($dbc[$dbcIndex])['line'];
+
+        if (strrpos($file, __FILE__) !== false) {
+            $file = '-';
+            $line = '-';
+        }
 
         $checkPoint = new CheckPoint($currentTime, $ramUsage, $file, $line);
         $this->checkPoints[$tag] = $checkPoint;
@@ -164,6 +179,17 @@ class Debench
         }
 
         $this->checkPoints[$prevKey]->setTimestamp($this->endPointMS - $prevCP->getTimestamp());
+    }
+
+
+    /**
+     * Is Debench in minimal mode
+     *
+     * @return bool
+     */
+    public function isMinimal(): bool
+    {
+        return $this->minimal;
     }
 
 
@@ -229,7 +255,7 @@ class Debench
      *
      * @return array<string,object>
      */
-    private function getCheckPoints(): array
+    public function getCheckPoints(): array
     {
         if (!$this->checkPoints) {
             return [];
@@ -353,12 +379,20 @@ class Debench
             ]);
         }
 
-        // ------- logTime
-        $logTime = '';
+        // ------- infoLog
+        $infoLog = Template::render($this->path . '/' . $this->ui . '/debench/widget.log.info.htm', [
+            "phpVersion" => SystemInfo::getPHPVersion(),
+            "opcache" => SystemInfo::getOPCacheStatus() ? 'On' : 'Off',
+            "systemAPI" => SystemInfo::getSystemAPI(),
+        ]);
+
+        // ------- timeLog
+        $timeLog = '';
         foreach ($this->checkPoints as $key => $cp) {
-            $logTime .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.checkpoint.htm', [
+            $timeLog .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.checkpoint.htm', [
                 "name" => $this->getTagName($key),
                 "path" => $cp->getPath(),
+                "fileName" => basename($cp->getPath()),
                 "lineNumber" => $cp->getLineNumber(),
                 "timestamp" => $cp->getTimestamp(),
                 "memory" => Utils::toFormattedBytes($cp->getMemory()),
@@ -380,8 +414,8 @@ class Debench
         }
 
         // ------- logSession
-        if (session_status() != PHP_SESSION_ACTIVE) {
-            session_start();
+        if (PHP_SAPI === 'cli') {
+            $_SESSION = array();
         }
 
         $logSession = '';
@@ -407,7 +441,8 @@ class Debench
             'requestLog' => $logRequest,
             'session' => count($_SESSION ?? []),
             'sessionLog' => $logSession,
-            'logTime' => $logTime,
+            'infoLog' => $infoLog,
+            'timeLog' => $timeLog,
             'fullExecTime' => $eTime
         ]);
     }
@@ -435,7 +470,7 @@ class Debench
     public static function getInstance($enable = true, string $ui = 'theme'): Debench
     {
         if (self::$instance === null) {
-            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
             $path = dirname(($backtrace[0])['file']);
 
             self::$instance = new self($enable, $ui, $path);
