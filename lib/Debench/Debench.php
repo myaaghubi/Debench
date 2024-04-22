@@ -55,10 +55,20 @@ class Debench
         // check for UI
         $this->checkUI();
 
+
+        if (PHP_SAPI !== 'cli' && session_status() != PHP_SESSION_ACTIVE) {
+            @session_start();
+        }
+
         register_shutdown_function(function () {
             if (!$this->enable) {
                 return;
             }
+
+            if (Utils::isInTestMode()) {
+                return;
+            }
+
             $this->calculateExecutionTime();
             print $this->makeOutput();
         });
@@ -123,16 +133,21 @@ class Debench
         // to avoid duplicate tags(keys)
         $tag .= '#' . ($this->lastCheckPointNumber + 1);
 
-        $dbc = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+        $dbc = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
         $dbcIndex = 0;
 
         // specify calls from self class
-        if (strrpos(($dbc[$dbcIndex])['file'], __FILE__) !== false) {
-            $dbcIndex = 1;
+        while (count($dbc) > $dbcIndex && strrpos(($dbc[$dbcIndex])['file'], __FILE__) !== false) {
+            $dbcIndex += 1;
         }
 
         $file = ($dbc[$dbcIndex])['file'];
         $line = ($dbc[$dbcIndex])['line'];
+
+        if (strrpos($file, __FILE__) !== false) {
+            $file = '-';
+            $line = '-';
+        }
 
         $checkPoint = new CheckPoint($currentTime, $ramUsage, $file, $line);
         $this->checkPoints[$tag] = $checkPoint;
@@ -367,7 +382,7 @@ class Debench
         // ------- infoLog
         $infoLog = Template::render($this->path . '/' . $this->ui . '/debench/widget.log.info.htm', [
             "phpVersion" => SystemInfo::getPHPVersion(),
-            "opcache" => SystemInfo::getOPCacheStatus()?'On':'Off',
+            "opcache" => SystemInfo::getOPCacheStatus() ? 'On' : 'Off',
             "systemAPI" => SystemInfo::getSystemAPI(),
         ]);
 
@@ -401,8 +416,6 @@ class Debench
         // ------- logSession
         if (PHP_SAPI === 'cli') {
             $_SESSION = array();
-        } else if (session_status() != PHP_SESSION_ACTIVE) {
-            @session_start();
         }
 
         $logSession = '';
@@ -457,7 +470,7 @@ class Debench
     public static function getInstance($enable = true, string $ui = 'theme'): Debench
     {
         if (self::$instance === null) {
-            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
             $path = dirname(($backtrace[0])['file']);
 
             self::$instance = new self($enable, $ui, $path);
