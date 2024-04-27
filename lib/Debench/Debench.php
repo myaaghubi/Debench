@@ -14,6 +14,7 @@ namespace DEBENCH;
 
 class Debench
 {
+    private static bool $enable;
     private bool $minimal;
     private array $checkPoints;
 
@@ -32,9 +33,10 @@ class Debench
      * @param  string $path
      * @return void
      */
-    public function __construct(private bool $enable = true, private string $ui = 'theme', private string $path = '')
+    public function __construct(bool $enable = true, private string $ui = 'theme', private string $path = '')
     {
-        if (!$this->enable) {
+        self::$enable = $enable;
+        if (!self::$enable) {
             return;
         }
 
@@ -61,7 +63,7 @@ class Debench
         }
 
         register_shutdown_function(function () {
-            if (!$this->enable) {
+            if (!self::$enable) {
                 return;
             }
 
@@ -115,7 +117,7 @@ class Debench
      */
     public function newPoint(string $tag = ''): void
     {
-        if (!$this->enable) {
+        if (!self::$enable) {
             return;
         }
 
@@ -212,7 +214,7 @@ class Debench
      */
     public function isEnable(): bool
     {
-        return $this->enable;
+        return self::$enable;
     }
 
 
@@ -224,7 +226,19 @@ class Debench
      */
     public function setEnable(bool $enable): void
     {
-        $this->enable = $enable;
+        self::$enable = $enable;
+    }
+
+
+    /**
+     * Set Debench enable
+     *
+     * @param  bool $enable
+     * @return void
+     */
+    public static function enable(bool $enable): void
+    {
+        self::$enable = $enable;
     }
 
 
@@ -452,7 +466,7 @@ class Debench
             if ($message === false) {
                 return '';
             }
-            return empty($message)||!is_string($message)?'<b>Nothing</b> Yet!':$message;
+            return empty($message) || !is_string($message) ? '<b>Nothing</b> Yet!' : $message;
         }
 
         $output = '';
