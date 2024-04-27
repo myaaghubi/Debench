@@ -399,36 +399,19 @@ class Debench
                 "percent" => round($cp->getTimestamp() / ($eTime > 1 ? $eTime : 1) * 100),
             ]);
         }
+        
 
         // ------- logRequest
-        $logRequest = '';
-        foreach ($_REQUEST as $key => $value) {
-            $logRequest .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.request.htm', [
-                "key" => $key,
-                "value" => $value
-            ]);
-        }
+        $logRequest = $this->makeOutputLoop($this->path . '/' . $this->ui . '/debench/widget.log.request.htm', $_REQUEST);
 
-        if (!$_REQUEST) {
-            $logRequest = 'No <i>$_REQUEST</i> Yet!';
-        }
 
         // ------- logSession
         if (PHP_SAPI === 'cli') {
-            $_SESSION = array();
+            $logSession = '<b>CLI</b> mode!';
+        } else {        
+            $logSession = $this->makeOutputLoop($this->path . '/' . $this->ui . '/debench/widget.log.request.htm', $_SESSION);
         }
 
-        $logSession = '';
-        foreach ($_SESSION as $key => $value) {
-            $logSession .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.request.htm', [
-                "key" => $key,
-                "value" => $value
-            ]);
-        }
-
-        if (!$_SESSION) {
-            $logSession = 'No <i>$_SESSION</i> Yet!';
-        }
 
         // ------- the main widget
         return Template::render($this->path . '/' . $this->ui . '/debench/widget.htm', [
@@ -445,6 +428,33 @@ class Debench
             'timeLog' => $timeLog,
             'fullExecTime' => $eTime
         ]);
+    }
+
+
+    /**
+     * Make formatted output in loop, $key => $value
+     *
+     * @return string
+     */
+    private function makeOutputLoop(string $theme, array $data, string $message=''): string
+    {
+        if (empty($data)) {
+            if (empty($message)) {
+                $message = 'Nothing Yet!';
+            }
+            return $message;
+        }
+
+        $output = '';
+
+        foreach ($data as $key => $value) {
+            $output .= Template::render($theme, [
+                "key" => $key,
+                "value" => $value
+            ]);
+        }
+
+        return $output;
     }
 
 
