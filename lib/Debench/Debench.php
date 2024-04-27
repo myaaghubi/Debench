@@ -15,6 +15,9 @@ namespace DEBENCH;
 class Debench
 {
     private static bool $enable;
+    private static string $ui;
+    private static string $path;
+
     private bool $minimal;
     private array $checkPoints;
 
@@ -33,9 +36,12 @@ class Debench
      * @param  string $path
      * @return void
      */
-    public function __construct(bool $enable = true, private string $ui = 'theme', private string $path = '')
+    public function __construct(bool $enable = null, string $ui = null, string $path = null)
     {
-        self::$enable = $enable;
+        self::$enable = $enable ?? true;
+        self::$ui = $ui ? rtrim($ui, '/') : 'theme';
+        self::$path = $path ?? '';
+
         if (!self::$enable) {
             return;
         }
@@ -47,11 +53,9 @@ class Debench
 
         $this->newPoint('debench');
 
-        $this->ui = rtrim($ui, '/');
-
         if (empty($path)) {
             $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-            $this->path = dirname(($backtrace[0])['file']);
+            self::$path = dirname(($backtrace[0])['file']);
         }
 
         // check for UI
@@ -88,9 +92,9 @@ class Debench
     public function checkUI(): void
     {
         $currentPath = __DIR__;
-        $basePath = $this->path;
+        $basePath = self::$path;
 
-        $uiPath = $basePath . '/' . $this->ui;
+        $uiPath = $basePath . '/' . self::$ui;
         $uiPathFull = $uiPath . '/debench';
 
         // for assets
@@ -385,8 +389,8 @@ class Debench
 
         // ------- the minimal widget
         if ($this->minimal) {
-            return Template::render($this->path . '/' . $this->ui . '/debench/widget.minimal.htm', [
-                'base' => $this->ui,
+            return Template::render(self::$path . '/' . self::$ui . '/debench/widget.minimal.htm', [
+                'base' => self::$ui,
                 'ramUsage' => $this->getRamUsage(true),
                 'includedFilesCount' => $this->getLoadedFilesCount(),
                 'fullExecTime' => $eTime
@@ -394,7 +398,7 @@ class Debench
         }
 
         // ------- infoLog
-        $infoLog = Template::render($this->path . '/' . $this->ui . '/debench/widget.log.info.htm', [
+        $infoLog = Template::render(self::$path . '/' . self::$ui . '/debench/widget.log.info.htm', [
             "phpVersion" => SystemInfo::getPHPVersion(),
             "opcache" => SystemInfo::getOPCacheStatus() ? 'On' : 'Off',
             "systemAPI" => SystemInfo::getSystemAPI(),
@@ -403,7 +407,7 @@ class Debench
         // ------- timeLog
         $timeLog = '';
         foreach ($this->checkPoints as $key => $cp) {
-            $timeLog .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.checkpoint.htm', [
+            $timeLog .= Template::render(self::$path . '/' . self::$ui . '/debench/widget.log.checkpoint.htm', [
                 "name" => $this->getTagName($key),
                 "path" => $cp->getPath(),
                 "fileName" => basename($cp->getPath()),
@@ -416,13 +420,13 @@ class Debench
 
 
         // ------- logPost
-        $logPost = $this->makeOutputLoop($this->path . '/' . $this->ui . '/debench/widget.log.request.post.htm', $_POST, false);
+        $logPost = $this->makeOutputLoop(self::$path . '/' . self::$ui . '/debench/widget.log.request.post.htm', $_POST, false);
 
         // ------- logGet
-        $logGet = $this->makeOutputLoop($this->path . '/' . $this->ui . '/debench/widget.log.request.get.htm', $_GET, false);
+        $logGet = $this->makeOutputLoop(self::$path . '/' . self::$ui . '/debench/widget.log.request.get.htm', $_GET, false);
 
         // ------- logCookie
-        $logCookie = $this->makeOutputLoop($this->path . '/' . $this->ui . '/debench/widget.log.request.cookie.htm', $_COOKIE, false);
+        $logCookie = $this->makeOutputLoop(self::$path . '/' . self::$ui . '/debench/widget.log.request.cookie.htm', $_COOKIE, false);
 
         if (empty($logPost . $logGet . $logCookie)) {
             $logPost = '<b>Nothing</b> Yet!';
@@ -431,13 +435,13 @@ class Debench
         // ------- logSession
         $logSession = '<b>CLI</b> mode!';
         if (PHP_SAPI !== 'cli') {
-            $logSession = $this->makeOutputLoop($this->path . '/' . $this->ui . '/debench/widget.log.request.session.htm', $_SESSION);
+            $logSession = $this->makeOutputLoop(self::$path . '/' . self::$ui . '/debench/widget.log.request.session.htm', $_SESSION);
         }
 
 
         // ------- the main widget
-        return Template::render($this->path . '/' . $this->ui . '/debench/widget.htm', [
-            'base' => $this->ui,
+        return Template::render(self::$path . '/' . self::$ui . '/debench/widget.htm', [
+            'base' => self::$ui,
             'ramUsagePeak' => $this->getRamUsagePeak(true),
             'ramUsage' => $this->getRamUsage(true),
             'includedFilesCount' => $this->getLoadedFilesCount(),
@@ -501,7 +505,7 @@ class Debench
      * @param  string $ui
      * @return Debench
      */
-    public static function getInstance($enable = true, string $ui = 'theme'): Debench
+    public static function getInstance(bool $enable = null, string $ui = null): Debench
     {
         if (self::$instance === null) {
             $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
