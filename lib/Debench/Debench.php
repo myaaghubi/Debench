@@ -399,17 +399,25 @@ class Debench
                 "percent" => round($cp->getTimestamp() / ($eTime > 1 ? $eTime : 1) * 100),
             ]);
         }
-        
 
-        // ------- logRequest
-        $logRequest = $this->makeOutputLoop($this->path . '/' . $this->ui . '/debench/widget.log.request.htm', $_REQUEST);
 
+        // ------- logPost
+        $logPost = $this->makeOutputLoop($this->path . '/' . $this->ui . '/debench/widget.log.request.post.htm', $_POST, false);
+
+        // ------- logGet
+        $logGet = $this->makeOutputLoop($this->path . '/' . $this->ui . '/debench/widget.log.request.get.htm', $_GET, false);
+
+        // ------- logCookie
+        $logCookie = $this->makeOutputLoop($this->path . '/' . $this->ui . '/debench/widget.log.request.cookie.htm', $_COOKIE, false);
+
+        if (empty($logPost . $logGet . $logCookie)) {
+            $logPost = '<b>Nothing</b> Yet!';
+        }
 
         // ------- logSession
-        if (PHP_SAPI === 'cli') {
-            $logSession = '<b>CLI</b> mode!';
-        } else {        
-            $logSession = $this->makeOutputLoop($this->path . '/' . $this->ui . '/debench/widget.log.request.htm', $_SESSION);
+        $logSession = '<b>CLI</b> mode!';
+        if (PHP_SAPI !== 'cli') {
+            $logSession = $this->makeOutputLoop($this->path . '/' . $this->ui . '/debench/widget.log.request.session.htm', $_SESSION);
         }
 
 
@@ -420,8 +428,10 @@ class Debench
             'ramUsage' => $this->getRamUsage(true),
             'includedFilesCount' => $this->getLoadedFilesCount(),
             'preloadTime' => $this->initPointMS - $this->getRequestTime(),
-            'request' => count($_REQUEST ?? []),
-            'requestLog' => $logRequest,
+            'request' => count($_POST) + count($_GET) + count($_COOKIE),
+            'logPost' => $logPost,
+            'logGet' => $logGet,
+            'logCookie' => $logCookie,
             'session' => count($_SESSION ?? []),
             'sessionLog' => $logSession,
             'infoLog' => $infoLog,
@@ -436,13 +446,13 @@ class Debench
      *
      * @return string
      */
-    private function makeOutputLoop(string $theme, array $data, string $message=''): string
+    private function makeOutputLoop(string $theme, array $data, string|false $message = ''): string
     {
         if (empty($data)) {
-            if (empty($message)) {
-                $message = 'Nothing Yet!';
+            if ($message === false) {
+                return '';
             }
-            return $message;
+            return empty($message)||!is_string($message)?'<b>Nothing</b> Yet!':$message;
         }
 
         $output = '';
