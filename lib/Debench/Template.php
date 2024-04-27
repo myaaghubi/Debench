@@ -14,8 +14,10 @@ namespace DEBENCH;
 
 class Template
 {
+    private static array $path;
+
     /**
-     * Render the theme by params
+     * Render .htm files by params
      * 
      * @return string
      */
@@ -25,7 +27,13 @@ class Template
             throw new \Exception("File '$themePath` doesn't exists!");
         }
 
-        $theme = file_get_contents($themePath);
+        if (!isset(self::$path)) {
+            self::$path = [];
+        }
+
+        if (empty($theme = @self::$path[$themePath])) {
+            $theme = file_get_contents($themePath);
+        }
 
         foreach ($params as $key => $value) {
             $theme = str_replace("{{@$key}}", "$value", $theme);
