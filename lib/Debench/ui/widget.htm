@@ -46,8 +46,10 @@
         <ul>
           <li data-target="debench-panel-toggle">
             <b>{{@fullExecTime}} ms</b> / 
-            <b>{{@ramUsage}}</b> / 
-            <b>{{@includedFilesCount}}</b>
+            <b>{{@ramUsage}}</b>
+          </li>
+          <li>
+            <i>{{@requestInfo}}</i>
           </li>
         </ul>
       </div>
@@ -67,6 +69,9 @@
           </li>
           <li data-target="debench-session-block">
             Session: <b>{{@session}}</b>
+          </li>
+          <li>
+            <i>{{@requestInfo}}</i>
           </li>
           <li class="debench-toggle" data-target="debench-panel-toggle">
             <b>&#8651</b>

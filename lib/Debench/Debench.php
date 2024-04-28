@@ -392,7 +392,7 @@ class Debench
             return Template::render(self::$path . '/' . self::$ui . '/debench/widget.minimal.htm', [
                 'base' => self::$ui,
                 'ramUsage' => $this->getRamUsage(true),
-                'includedFilesCount' => $this->getLoadedFilesCount(),
+                'requestInfo' => $_SERVER['REQUEST_METHOD'] . ' ' . http_response_code(),
                 'fullExecTime' => $eTime
             ]);
         }
@@ -457,6 +457,7 @@ class Debench
             'sessionLog' => $logSession,
             'infoLog' => $infoLog,
             'timeLog' => $timeLog,
+            'requestInfo' => $_SERVER['REQUEST_METHOD'] . ' ' . http_response_code(),
             'fullExecTime' => $eTime
         ]);
     }
