@@ -17,6 +17,7 @@ class Debench
     private static bool $enable;
     private static string $ui;
     private static string $path;
+    private static string $uiPath;
 
     private bool $minimalOnly;
     private array $checkPoints;
@@ -58,6 +59,8 @@ class Debench
             self::$path = dirname(($backtrace[0])['file']);
         }
 
+        self::$uiPath = self::$path . '/' . self::$ui . '/debench';
+
         // check for UI
         $this->checkUI();
 
@@ -92,23 +95,20 @@ class Debench
     public function checkUI(): void
     {
         $currentPath = __DIR__;
-        $basePath = self::$path;
-
-        $uiPath = $basePath . '/' . self::$ui;
-        $uiPathFull = $uiPath . '/debench';
 
         // for assets
-        if (!is_dir($uiPath)) {
-            if (!is_dir($basePath) || !is_writable($basePath)) {
-                throw new \Exception("Directory not exists or not writable! `$basePath` ", 500);
+        if (!is_dir(self::$path . '/' . self::$ui)) {
+            if (!is_dir(self::$path) || !is_writable(self::$path)) {
+                throw new \Exception("Directory not exists or not writable! `".self::$path."` ", 500);
             }
 
-            @mkdir($uiPath);
+            @mkdir(self::$path . '/' . self::$ui, 0777, true);
         }
 
         // for assets
-        if (!is_dir($uiPathFull)) {
-            Utils::copyDir($currentPath . '/ui', $uiPathFull);
+        if (!is_dir(self::$uiPath)) {
+            @mkdir(self::$uiPath, 0777, true);
+            Utils::copyDir($currentPath . '/ui', self::$uiPath);
         }
     }
 
