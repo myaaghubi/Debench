@@ -400,7 +400,7 @@ class Debench
         // ------- infoLog
         $infoLog = Template::render(self::$path . '/' . self::$ui . '/debench/widget.log.info.htm', [
             "phpVersion" => SystemInfo::getPHPVersion(),
-            "opcache" => SystemInfo::getOPCacheStatus() ? 'On' : 'Off',
+            "opcache" => SystemInfo::getOPCacheStatus(),
             "systemAPI" => SystemInfo::getSystemAPI(),
         ]);
 
