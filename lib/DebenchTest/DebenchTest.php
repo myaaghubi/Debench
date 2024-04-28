@@ -58,11 +58,11 @@ class DebenchTest extends TestCase
         $this->assertCount(3, $this->debench->getCheckPoints());
     }
 
-    public function testSetMinimal(): void
+    public function testSetMinimalOnly(): void
     {
-        $this->debench->setMinimal(true);
+        $this->debench->setMinimalOnly(true);
 
-        $this->assertTrue($this->debench->isMinimal());
+        $this->assertTrue($this->debench->isMinimalOnly());
     }
 
     public function testIsEnable(): void
@@ -101,7 +101,7 @@ class DebenchTest extends TestCase
         $this->assertIsInt($this->debench->getCurrentTime());
     }
 
-    public function testSetInstance(): void
+    public function testGetInstance(): void
     {
         $this->assertInstanceOf(Debench::class, Debench::getInstance());
     }

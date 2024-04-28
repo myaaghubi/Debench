@@ -18,7 +18,7 @@ class Debench
     private static string $ui;
     private static string $path;
 
-    private bool $minimal;
+    private bool $minimalOnly;
     private array $checkPoints;
 
     private int $initPointMS;
@@ -46,7 +46,7 @@ class Debench
             return;
         }
 
-        $this->minimal = false;
+        $this->minimalOnly = false;
         $this->checkPoints = [];
         $this->lastCheckPointInMS = 0;
         $this->lastCheckPointNumber = 0;
@@ -193,21 +193,21 @@ class Debench
      *
      * @return bool
      */
-    public function isMinimal(): bool
+    public function isMinimalOnly(): bool
     {
-        return $this->minimal;
+        return $this->minimalOnly;
     }
 
 
     /**
      * Set Debench to only minimal mode
      *
-     * @param  bool $minimalMode
+     * @param  bool $minimalModeOnly
      * @return void
      */
-    public function setMinimal(bool $minimalMode): void
+    public function setMinimalOnly(bool $minimalModeOnly): void
     {
-        $this->minimal = $minimalMode;
+        $this->minimalOnly = $minimalModeOnly;
     }
 
 
@@ -388,7 +388,7 @@ class Debench
         $eTime = $this->getExecutionTime();
 
         // ------- the minimal widget
-        if ($this->minimal) {
+        if ($this->minimalOnly) {
             return Template::render(self::$path . '/' . self::$ui . '/debench/widget.minimal.htm', [
                 'base' => self::$ui,
                 'ramUsage' => $this->getRamUsage(true),
