@@ -433,8 +433,11 @@ class Debench
         }
 
         // ------- logSession
-        $logSession = '<b>CLI</b> mode!';
-        if (PHP_SAPI !== 'cli') {
+        if (PHP_SAPI == 'cli') {
+            $logSession = '<b>CLI</b> mode!';
+        } else if (!isset($_SESSION)) {
+            $logSession = '<b>_SESSION</b> not available!';
+        } else {
             $logSession = $this->makeOutputLoop(self::$path . '/' . self::$ui . '/debench/widget.log.request.session.htm', $_SESSION);
         }
 
