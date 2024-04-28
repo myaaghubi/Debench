@@ -36,7 +36,7 @@ class Utils
         // open the source directory
         $dir = opendir($from);
 
-        mkdir($to);
+        @mkdir($to);
 
         // Loop through the files in source directory
         while ($file = readdir($dir)) {
