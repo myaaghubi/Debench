@@ -32,7 +32,18 @@ class SystemInfo
      */
     public static function getSystemAPI(): string
     {
-        return php_sapi_name();
+        return PHP_SAPI;
+    }
+
+
+    /**
+     * Is in the cli mode
+     * 
+     * @return bool
+     */
+    public static function isCLI(): bool
+    {
+        return strtolower(self::getSystemAPI()) == 'cli';
     }
 
 

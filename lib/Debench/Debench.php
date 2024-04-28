@@ -65,7 +65,7 @@ class Debench
         $this->checkUI();
 
 
-        if (PHP_SAPI !== 'cli' && session_status() != PHP_SESSION_ACTIVE) {
+        if (SystemInfo::isCLI() && session_status() != PHP_SESSION_ACTIVE) {
             @session_start();
         }
 
@@ -99,7 +99,7 @@ class Debench
         // for assets
         if (!is_dir(self::$path . '/' . self::$ui)) {
             if (!is_dir(self::$path) || !is_writable(self::$path)) {
-                throw new \Exception("Directory not exists or not writable! `".self::$path."` ", 500);
+                throw new \Exception("Directory not exists or not writable! `" . self::$path . "` ", 500);
             }
 
             @mkdir(self::$path . '/' . self::$ui, 0777, true);
@@ -433,7 +433,7 @@ class Debench
         }
 
         // ------- logSession
-        if (PHP_SAPI == 'cli') {
+        if (SystemInfo::isCLI()) {
             $logSession = '<b>CLI</b> mode!';
         } else if (!isset($_SESSION)) {
             $logSession = '<b>_SESSION</b> not available!';
