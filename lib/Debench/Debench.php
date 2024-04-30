@@ -21,6 +21,7 @@ class Debench
     private static bool $minimalOnly;
 
     private array $checkPoints;
+    private array $exceptions;
 
     private int $initPointMS;
     private int $endPointMS;
@@ -67,6 +68,8 @@ class Debench
         if (!SystemInfo::isCLI() && session_status() != PHP_SESSION_ACTIVE) {
             @session_start();
         }
+
+        set_exception_handler([$this, 'addException']);
 
         register_shutdown_function(function () {
             if (!self::$enable || Utils::isInTestMode()) {
@@ -512,6 +515,33 @@ class Debench
 
 
     /**
+     * Add an exception to exceptions array
+     * 
+     * @param  Throwable $exception
+     * @return void
+     */
+    public function addException(\Throwable $exception): void
+    {
+        if (!isset($this->exceptions)) {
+            $this->exceptions = [];
+        }
+
+        $this->exceptions[] = $exception;
+    }
+
+
+    /**
+     * Get the exceptions array
+     * 
+     * @return array
+     */
+    private function getExceptions(): array
+    {
+        return $this->exceptions ?? [];
+    }
+
+
+    /**
      * Make formatted output
      *
      * @return string
@@ -558,11 +588,14 @@ class Debench
         // ------- logPost
         $logPost = $this->makeOutputLoop(self::$uiPath . '/widget.log.request.post.htm', $_POST, false);
 
+
         // ------- logGet
         $logGet = $this->makeOutputLoop(self::$uiPath . '/widget.log.request.get.htm', $_GET, false);
 
+
         // ------- logCookie
         $logCookie = $this->makeOutputLoop(self::$uiPath . '/widget.log.request.cookie.htm', $_COOKIE, false);
+
 
         if (empty($logPost . $logGet . $logCookie)) {
             $logPost = '<b>Nothing</b> Yet!';
@@ -576,6 +609,26 @@ class Debench
             $logSession = '<b>_SESSION</b> is not available!';
         } else {
             $logSession = $this->makeOutputLoop(self::$uiPath . '/widget.log.request.session.htm', $_SESSION);
+        }
+
+
+        // ------- logException
+        $logException = '';
+
+        foreach ($this->getExceptions() as $exception) {
+            $file = basename($exception->getFile());
+            $path = str_replace($file, "<b>$file</b>", $exception->getFile());
+
+            $logException .= Template::render(self::$uiPath . '/widget.log.exception.htm', [
+                // "code" => $exception->getCode(),
+                "message" => $exception->getMessage(),
+                "path" => $path,
+                "line" => $exception->getLine(),
+            ]);
+        }
+
+        if (empty($logException)) {
+            $logException = '<b>Nothing</b> Yet!';
         }
 
 
@@ -594,6 +647,8 @@ class Debench
             'sessionLog' => $logSession,
             'infoLog' => $infoLog,
             'timeLog' => $timeLog,
+            'logException' => $logException,
+            'exception' => count($this->getExceptions()),
             'requestInfo' => $_SERVER['REQUEST_METHOD'] . ' ' . http_response_code(),
             'fullExecTime' => $eTime
         ]);
