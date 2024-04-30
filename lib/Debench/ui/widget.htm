@@ -21,11 +21,11 @@
         <table>
           <thead>
             <tr>
-              <th>Key</th>
               <th></th>
-              <th>Value</th>
               <th></th>
-              <th>Method</th>
+              <th></th>
+              <th></th>
+              <th></th>
             </tr>
             <tbody>
               {{@logPost}}
@@ -46,10 +46,8 @@
         <ul>
           <li data-target="debench-panel-toggle">
             <b>{{@fullExecTime}} ms</b> / 
-            <b>{{@ramUsage}}</b>
-          </li>
-          <li>
-            <i>{{@requestInfo}}</i>
+            <b>{{@ramUsage}}</b> | 
+            {{@requestInfo}}
           </li>
         </ul>
       </div>
@@ -59,10 +57,8 @@
             <image width="12px" height="12px" src="{{@base}}/debench/assets/img/info.png"></image>
           </li>
           <li data-target="debench-checkpoints-block">
-            Time: <b>{{@fullExecTime}} ms</b> (<span title="Preload Time: {{@preloadTime}} ms">{{@preloadTime}}
-              ms</span>),
-            Memory: <b>{{@ramUsage}}</b> (<span title="Ram Usage Peak: {{@ramUsagePeak}} ms">{{@ramUsagePeak}}</span>),
-            Included: <b>{{@includedFilesCount}}</b> files
+            Time: <b>{{@fullExecTime}} ms</b>,
+            Memory: <b>{{@ramUsage}}</b> (<span title="Ram Usage Peak: {{@ramUsagePeak}} ms">{{@ramUsagePeak}}</span>)
           </li>
           <li data-target="debench-request-block">
             Request: <b>{{@request}}</b>
