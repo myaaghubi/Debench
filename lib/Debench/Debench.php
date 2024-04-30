@@ -52,7 +52,11 @@ class Debench
         $this->lastCheckPointInMS = 0;
         $this->lastCheckPointNumber = 0;
 
-        $this->newPoint('debench');
+        // Script initial point
+        $this->addScriptPoint('Script');
+
+        // Debench initial point
+        $this->newPoint('Debench');
 
         if (empty($path)) {
             $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
@@ -114,10 +118,63 @@ class Debench
 
 
     /**
+     * Add a new item in checkpoint[]
+     * 
+     * @param  int $currentTime
+     * @param  int $memory
+     * @param  string $path
+     * @param  int $lineNumber
+     * @param  string $key
+     * @param  bool $addAtFirst
+     * @return void
+     */
+    private function addCheckPoint(int $currentTime, int $memory, string $path, int $lineNumber, string $key = '', bool $addAtFirst=false): void
+    {
+        if (empty($key)) {
+            throw new \Exception("The `key` can't be empty!");
+        }
+
+        if (!$this->checkTag($key)) {
+            throw new \Exception("The `key` is not in the right format!");
+        }
+
+        $checkPoint = new CheckPoint($currentTime, $memory, $path, $lineNumber);
+
+        if (!isset($this->checkPoints)) {
+            $this->checkPoints = [];
+        }
+
+        if ($addAtFirst) {
+            $this->checkPoints = [$key => $checkPoint] + $this->checkPoints;
+            return;
+        }
+
+        $this->checkPoints[$key] = $checkPoint;
+    }
+
+    
+    /**
+     * Add the first checkpoint
+     *
+     * @param  string $tag
+     * @return void
+     */
+    private function addScriptPoint(string $tag = ''): void 
+    {
+        $time = $this->getRequestTime();
+        $path = $this->getScriptName();
+        $tag = $this->makeTag($tag, $this->lastCheckPointNumber++);
+
+        // add a check point as preload
+        $this->addCheckPoint($time, 0, $path, 0, $tag);
+    }
+
+
+    /**
      * Add a new checkpoint
      * 
      * @param  string $tag
-     * @return object
+     * @return void
      */
     public function newPoint(string $tag = ''): void
     {
@@ -131,13 +188,6 @@ class Debench
         }
 
         $ramUsage = $this->getRamUsage();
-
-        if (empty($tag)) {
-            $tag = 'point ' . ($this->lastCheckPointNumber + 1);
-        }
-
-        // to avoid duplicate tags(keys)
-        $tag .= '#' . ($this->lastCheckPointNumber + 1);
 
         $dbc = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
         $dbcIndex = 0;
@@ -155,11 +205,11 @@ class Debench
             $line = '-';
         }
 
-        $checkPoint = new CheckPoint($currentTime, $ramUsage, $file, $line);
-        $this->checkPoints[$tag] = $checkPoint;
+        $tag = $this->makeTag($tag, $this->lastCheckPointNumber++);
 
-        $this->lastCheckPointInMS = $currentTime;
-        $this->lastCheckPointNumber += 1;
+        $this->addCheckPoint($currentTime, $ramUsage, $file, $line, $tag);
+
+        $this->setLastCheckPointInMS($currentTime);
     }
 
 
@@ -339,6 +389,17 @@ class Debench
     public function getRequestTime(): int
     {
         return intval($_SERVER["REQUEST_TIME_FLOAT"] * 1000);
+    }
+
+
+    /**
+     * Get the script name
+     *
+     * @return string
+     */
+    public function getScriptName(): string
+    {
+        return $_SERVER['SCRIPT_NAME'];
     }
 
 
