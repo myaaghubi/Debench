@@ -379,6 +379,42 @@ class Debench
 
 
     /**
+     * Make the tag
+     * 
+     * @param  string $tag
+     * @param  int $id
+     * @return string
+     */
+    private function makeTag(string $tag, int $id): string
+    {
+        if (empty($tag)) {
+            $tag = 'point ' . $id;
+        }
+
+        // tags(keys) should to be unique
+        return $tag .= '#' . $id;
+    }
+
+
+    /**
+     * Validate the tag
+     * 
+     * @param  string $tag
+     * @return bool
+     */
+    private function checkTag(string $tag): bool
+    {
+        $regex = "/^([a-zA-Z0-9_ -]+)#[0-9]+$/";
+
+        if (preg_match($regex, $tag)) {
+            return true;
+        }
+        
+        return false;
+    }
+
+
+    /**
      * Make formatted output
      *
      * @return string
