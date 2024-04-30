@@ -41,6 +41,13 @@
         {{@sessionLog}}
       </div>
     </li>
+    <li class="debench-exceptions-block">
+      <div class="debench-panel">
+        <table>
+        {{@logException}}
+        </table>
+      </div>
+    </li>
     <li>
       <div class="debench-panel debench-main-panel-minimal">
         <ul>
@@ -65,6 +72,9 @@
           </li>
           <li data-target="debench-session-block">
             Session: <b>{{@session}}</b>
+          </li>
+          <li data-target="debench-exceptions-block">
+            Exceptions: <b>{{@exception}}</b>
           </li>
           <li>
             <i>{{@requestInfo}}</i>
