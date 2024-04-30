@@ -62,8 +62,8 @@ class Debench
 
         self::$uiPath = self::$path . '/' . self::$ui . '/debench';
 
-        // check for UI
-        $this->checkUI();
+        // make sure about the theme
+        Template::makeUI(self::$path, self::$uiPath);
 
         if (!SystemInfo::isCLI() && session_status() != PHP_SESSION_ACTIVE) {
             @session_start();
@@ -82,33 +82,6 @@ class Debench
         });
 
         self::$instance = $this;
-    }
-
-
-    /**
-     * Copy the template from ui dir into your webroot dir if
-     * it doesn't exist
-     *
-     * @return void
-     */
-    public function checkUI(): void
-    {
-        $currentPath = __DIR__;
-
-        // for assets
-        if (!is_dir(self::$path . '/' . self::$ui)) {
-            if (!is_dir(self::$path) || !is_writable(self::$path)) {
-                throw new \Exception("Directory not exists or not writable! `" . self::$path . "` ", 500);
-            }
-
-            @mkdir(self::$path . '/' . self::$ui, 0777, true);
-        }
-
-        // for assets
-        if (!is_dir(self::$uiPath)) {
-            @mkdir(self::$uiPath, 0777, true);
-            Utils::copyDir($currentPath . '/ui', self::$uiPath);
-        }
     }
 
 
