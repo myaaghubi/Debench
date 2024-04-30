@@ -64,8 +64,7 @@ class Debench
         // check for UI
         $this->checkUI();
 
-
-        if (SystemInfo::isCLI() && session_status() != PHP_SESSION_ACTIVE) {
+        if (!SystemInfo::isCLI() && session_status() != PHP_SESSION_ACTIVE) {
             @session_start();
         }
 
