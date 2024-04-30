@@ -24,7 +24,7 @@ class DebenchTest extends TestCase
     }
 
 
-    public function testCheckUI(): void
+    public function testTheTheme(): void
     {
         $theme = __DIR__ . '/' . $this->theme;
 
@@ -41,8 +41,8 @@ class DebenchTest extends TestCase
     {
         $this->assertIsArray($this->debench->getCheckPoints());
 
-        // we have one initial checkpoint, happens inside the constructor
-        $this->assertCount(1, $this->debench->getCheckPoints());
+        // we have one Script and one Debench checkpoints, both happens inside the constructor
+        $this->assertCount(2, $this->debench->getCheckPoints());
     }
 
     public function testNewPoint(string $tag = ''): void
@@ -54,8 +54,8 @@ class DebenchTest extends TestCase
 
         $this->debench::point("a new point");
 
-        // we have one initial checkpoint, happens inside of the class
-        $this->assertCount(3, $this->debench->getCheckPoints());
+        // we have one Script and one Debench checkpoints, both happens inside the constructor
+        $this->assertCount(4, $this->debench->getCheckPoints());
     }
 
     public function testSetMinimalOnly(): void
