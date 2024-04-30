@@ -18,8 +18,8 @@ class Debench
     private static string $ui;
     private static string $path;
     private static string $uiPath;
+    private static bool $minimalOnly;
 
-    private bool $minimalOnly;
     private array $checkPoints;
 
     private int $initPointMS;
@@ -28,6 +28,7 @@ class Debench
     private int $lastCheckPointNumber;
 
     private static ?Debench $instance = null;
+
 
     /**
      * Debench constructor
@@ -46,11 +47,6 @@ class Debench
         if (!self::$enable) {
             return;
         }
-
-        $this->minimalOnly = false;
-        $this->checkPoints = [];
-        $this->lastCheckPointInMS = 0;
-        $this->lastCheckPointNumber = 0;
 
         // Script initial point
         $this->addScriptPoint('Script');
@@ -74,15 +70,12 @@ class Debench
         }
 
         register_shutdown_function(function () {
-            if (!self::$enable) {
+            if (!self::$enable || Utils::isInTestMode()) {
                 return;
             }
 
-            if (Utils::isInTestMode()) {
-                return;
-            }
+            $this->processCheckPoints();
 
-            $this->calculateExecutionTime();
             print $this->makeOutput();
         });
 
@@ -128,7 +121,7 @@ class Debench
      * @param  bool $addAtFirst
      * @return void
      */
-    private function addCheckPoint(int $currentTime, int $memory, string $path, int $lineNumber, string $key = '', bool $addAtFirst=false): void
+    private function addCheckPoint(int $currentTime, int $memory, string $path, int $lineNumber, string $key = '', bool $addAtFirst = false): void
     {
         if (empty($key)) {
             throw new \Exception("The `key` can't be empty!");
@@ -152,18 +145,18 @@ class Debench
         $this->checkPoints[$key] = $checkPoint;
     }
 
-    
+
     /**
      * Add the first checkpoint
      *
      * @param  string $tag
      * @return void
      */
-    private function addScriptPoint(string $tag = ''): void 
+    private function addScriptPoint(string $tag = ''): void
     {
         $time = $this->getRequestTime();
         $path = $this->getScriptName();
-        $tag = $this->makeTag($tag, $this->lastCheckPointNumber++);
+        $tag = $this->makeTag($tag, $this->incrementLastCheckPointNumber(true));
 
         // add a check point as preload
         $this->addCheckPoint($time, 0, $path, 0, $tag);
@@ -205,7 +198,7 @@ class Debench
             $line = '-';
         }
 
-        $tag = $this->makeTag($tag, $this->lastCheckPointNumber++);
+        $tag = $this->makeTag($tag, $this->incrementLastCheckPointNumber(true));
 
         $this->addCheckPoint($currentTime, $ramUsage, $file, $line, $tag);
 
@@ -218,23 +211,26 @@ class Debench
      *
      * @return void
      */
-    private function calculateExecutionTime(): void
+    private function processCheckPoints(): void
     {
-        // may the below loop take some time
+        // depends on the the array, it may the below loop take some time to process
         $this->endPointMS = $this->getCurrentTime();
 
         $prevKey = '';
         $prevCP = null;
-        foreach ($this->checkPoints as $key => $cp) {
+
+        foreach ($this->getCheckPoints() as $key => $cp) {
             if (!empty($prevKey) && $prevCP != null) {
-                $this->checkPoints[$prevKey]->setTimestamp($cp->getTimestamp() - $prevCP->getTimestamp());
+                $diff = $cp->getTimestamp() - $prevCP->getTimestamp();
+                $this->checkPoints[$prevKey]->setTimestamp($diff);
             }
 
             $prevKey = $key;
             $prevCP = $cp;
         }
 
-        $this->checkPoints[$prevKey]->setTimestamp($this->endPointMS - $prevCP->getTimestamp());
+        $diff = $this->endPointMS - $prevCP->getTimestamp();
+        $this->checkPoints[$prevKey]->setTimestamp($diff);
     }
 
 
@@ -245,7 +241,7 @@ class Debench
      */
     public function isMinimalOnly(): bool
     {
-        return $this->minimalOnly;
+        return self::$minimalOnly ?? false;
     }
 
 
@@ -257,7 +253,19 @@ class Debench
      */
     public function setMinimalOnly(bool $minimalModeOnly): void
     {
-        $this->minimalOnly = $minimalModeOnly;
+        self::$minimalOnly = $minimalModeOnly;
+    }
+
+
+    /**
+     * Set Debench to only minimal mode
+     *
+     * @param  bool $minimalModeOnly
+     * @return void
+     */
+    public static function minimalOnly(bool $minimalModeOnly): void
+    {
+        self::$minimalOnly = $minimalModeOnly;
     }
 
 
@@ -303,7 +311,19 @@ class Debench
      */
     private function getLastCheckPointInMS(): int
     {
-        return $this->lastCheckPointInMS;
+        return $this->lastCheckPointInMS ?? 0;
+    }
+
+
+    /**
+     * Set the last checkpoint in milliseconds
+     *
+     * @param  int $timestamp
+     * @return void
+     */
+    private function setLastCheckPointInMS(int $timestamp): void
+    {
+        $this->lastCheckPointInMS = $timestamp;
     }
 
 
@@ -314,7 +334,27 @@ class Debench
      */
     private function getLastCheckPointNumber(): int
     {
-        return $this->lastCheckPointNumber;
+        return $this->lastCheckPointNumber ?? 0;
+    }
+
+
+    /**
+     * Get the last checkpoint number, and increase it
+     *
+     * @param  bool $postfix
+     * @return int
+     */
+    private function incrementLastCheckPointNumber(bool $postfix = true): int
+    {
+        if (!isset($this->lastCheckPointNumber)) {
+            $this->lastCheckPointNumber = 0;
+        }
+
+        if ($postfix) {
+            return $this->lastCheckPointNumber++;
+        }
+
+        return ++$this->lastCheckPointNumber;
     }
 
 
@@ -325,10 +365,7 @@ class Debench
      */
     public function getCheckPoints(): array
     {
-        if (!$this->checkPoints) {
-            return [];
-        }
-        return $this->checkPoints;
+        return $this->checkPoints ?? [];
     }
 
 
@@ -375,9 +412,9 @@ class Debench
      */
     public function getExecutionTime(): int
     {
+        return $this->getCurrentTime() - $this->getRequestTime();
         // what about loads before Debench such as composer !?
-        // return $this->getCurrentTime() - $this->getRequestTime();
-        return $this->endPointMS - $this->initPointMS;
+        // return $this->endPointMS - $this->initPointMS;
     }
 
 
@@ -470,7 +507,7 @@ class Debench
         if (preg_match($regex, $tag)) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -485,8 +522,8 @@ class Debench
         $eTime = $this->getExecutionTime();
 
         // ------- the minimal widget
-        if ($this->minimalOnly) {
-            return Template::render(self::$path . '/' . self::$ui . '/debench/widget.minimal.htm', [
+        if ($this->isMinimalOnly()) {
+            return Template::render(self::$uiPath . '/widget.minimal.htm', [
                 'base' => self::$ui,
                 'ramUsage' => $this->getRamUsage(true),
                 'requestInfo' => $_SERVER['REQUEST_METHOD'] . ' ' . http_response_code(),
@@ -494,17 +531,20 @@ class Debench
             ]);
         }
 
+
         // ------- infoLog
-        $infoLog = Template::render(self::$path . '/' . self::$ui . '/debench/widget.log.info.htm', [
+        $infoLog = Template::render(self::$uiPath . '/widget.log.info.htm', [
             "phpVersion" => SystemInfo::getPHPVersion(),
             "opcache" => SystemInfo::getOPCacheStatus(),
             "systemAPI" => SystemInfo::getSystemAPI(),
         ]);
 
+
         // ------- timeLog
         $timeLog = '';
-        foreach ($this->checkPoints as $key => $cp) {
-            $timeLog .= Template::render(self::$path . '/' . self::$ui . '/debench/widget.log.checkpoint.htm', [
+
+        foreach ($this->getCheckPoints() as $key => $cp) {
+            $timeLog .= Template::render(self::$uiPath . '/widget.log.checkpoint.htm', [
                 "name" => $this->getTagName($key),
                 "path" => $cp->getPath(),
                 "fileName" => basename($cp->getPath()),
@@ -517,34 +557,35 @@ class Debench
 
 
         // ------- logPost
-        $logPost = $this->makeOutputLoop(self::$path . '/' . self::$ui . '/debench/widget.log.request.post.htm', $_POST, false);
+        $logPost = $this->makeOutputLoop(self::$uiPath . '/widget.log.request.post.htm', $_POST, false);
 
         // ------- logGet
-        $logGet = $this->makeOutputLoop(self::$path . '/' . self::$ui . '/debench/widget.log.request.get.htm', $_GET, false);
+        $logGet = $this->makeOutputLoop(self::$uiPath . '/widget.log.request.get.htm', $_GET, false);
 
         // ------- logCookie
-        $logCookie = $this->makeOutputLoop(self::$path . '/' . self::$ui . '/debench/widget.log.request.cookie.htm', $_COOKIE, false);
+        $logCookie = $this->makeOutputLoop(self::$uiPath . '/widget.log.request.cookie.htm', $_COOKIE, false);
 
         if (empty($logPost . $logGet . $logCookie)) {
             $logPost = '<b>Nothing</b> Yet!';
         }
 
+
         // ------- logSession
         if (SystemInfo::isCLI()) {
-            $logSession = '<b>CLI</b> mode!';
+            $logSession = 'CLI mode!';
         } else if (!isset($_SESSION)) {
-            $logSession = '<b>_SESSION</b> not available!';
+            $logSession = '<b>_SESSION</b> is not available!';
         } else {
-            $logSession = $this->makeOutputLoop(self::$path . '/' . self::$ui . '/debench/widget.log.request.session.htm', $_SESSION);
+            $logSession = $this->makeOutputLoop(self::$uiPath . '/widget.log.request.session.htm', $_SESSION);
         }
 
 
         // ------- the main widget
-        return Template::render(self::$path . '/' . self::$ui . '/debench/widget.htm', [
+        return Template::render(self::$uiPath . '/widget.htm', [
             'base' => self::$ui,
             'ramUsagePeak' => $this->getRamUsagePeak(true),
             'ramUsage' => $this->getRamUsage(true),
-            'includedFilesCount' => $this->getLoadedFilesCount(),
+            // 'includedFilesCount' => $this->getLoadedFilesCount(),
             'preloadTime' => $this->initPointMS - $this->getRequestTime(),
             'request' => count($_POST) + count($_GET) + count($_COOKIE),
             'logPost' => $logPost,
