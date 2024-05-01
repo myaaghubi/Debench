@@ -19,22 +19,28 @@ class DebenchTest extends TestCase
 
     protected function tearDown(): void
     {
+        self::deleteDir($this->debench->getPathUI());
         $this->debench = null;
-        self::deleteDir(__DIR__ . '/' . $this->theme);
     }
 
 
     public function testTheTheme(): void
     {
-        $theme = __DIR__ . '/' . $this->theme;
+        $this->assertFileExists($this->debench->getPathUI());
 
-        $this->assertFileExists($theme);
+        $debenchRef = new \ReflectionClass($this->debench);
+        $srcDir = dirname($debenchRef->getFilename()) . '/ui';
 
+        $destFilesCount = count(glob($this->debench->getPathUI() . '/*'));
+        $srcFilesCount = count(glob($srcDir . '/*'));
 
-        $themeFilesCount = glob($theme . '/debench/*');
-        $uiFilesCount = glob(__DIR__ . '/../Debench/ui/*');
-
-        $this->assertEquals(count($themeFilesCount), count($uiFilesCount), "The number of files in the theme folder does not match with the ui dir!");
+        $this->assertEquals(
+            $srcFilesCount,
+            $destFilesCount,
+            $this->debench->getPathUI().PHP_EOL.
+            $srcDir.PHP_EOL.
+            "The number of files does not match! src: $srcFilesCount, dest: $destFilesCount "
+        );
     }
 
     public function testGetCheckPoints(): void
