@@ -16,8 +16,8 @@ class Debench
 {
     private static bool $enable;
     private static string $ui;
-    private static string $path;
-    private static string $uiPath;
+    private static string $pathCalled;
+    private static string $pathUI;
     private static bool $minimalOnly;
 
     private array $checkPoints;
@@ -36,38 +36,27 @@ class Debench
      *
      * @param  bool $enable
      * @param  string $ui
-     * @param  string $path
      * @return void
      */
-    public function __construct(bool $enable = null, string $ui = null, string $path = null)
+    public function __construct(bool $enable = null, string $ui = null)
     {
         self::$enable = $enable ?? true;
         self::$ui = $ui ? rtrim($ui, '/') : 'theme';
-        self::$path = $path ?? '';
+        self::$pathCalled = dirname((Utils::getBacktrace()[0])['file']);
+        self::$pathUI = self::$pathCalled . '/' . self::$ui . '/debench';
 
         if (!self::$enable) {
             return;
         }
+
+        // make sure about the theme
+        Template::makeUI(self::$pathUI);
 
         // Script initial point
         $this->addScriptPoint('Script');
 
         // Debench initial point
         $this->newPoint('Debench');
-
-        if (empty($path)) {
-            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-            self::$path = dirname(($backtrace[0])['file']);
-        }
-
-        self::$uiPath = self::$path . '/' . self::$ui . '/debench';
-
-        // make sure about the theme
-        Template::makeUI(self::$path, self::$uiPath);
-
-        if (!SystemInfo::isCLI() && session_status() != PHP_SESSION_ACTIVE) {
-            @session_start();
-        }
 
         set_exception_handler([$this, 'addException']);
 
@@ -82,6 +71,19 @@ class Debench
         });
 
         self::$instance = $this;
+    }
+
+
+    /**
+     * Run session_start()
+     * 
+     * @return void
+     */
+    private function startSession(): void
+    {
+        if (!SystemInfo::isCLI() && session_status() != PHP_SESSION_ACTIVE) {
+            session_start();
+        }
     }
 
 
@@ -157,21 +159,17 @@ class Debench
 
         $ramUsage = $this->getRamUsage();
 
-        $dbc = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-        $dbcIndex = 0;
+        // debug_backtrace
+        $debugBT = Utils::getBacktrace()[0];
 
-        // specify calls from self class
-        while (count($dbc) > $dbcIndex && strrpos(($dbc[$dbcIndex])['file'], __FILE__) !== false) {
-            $dbcIndex += 1;
-        }
-
-        $file = ($dbc[$dbcIndex])['file'];
-        $line = ($dbc[$dbcIndex])['line'];
+        $file = $debugBT['file'];
+        $line = $debugBT['line'];
 
         if (strrpos($file, __FILE__) !== false) {
             $file = '-';
             $line = '-';
         }
+
 
         $tag = $this->makeTag($tag, $this->incrementLastCheckPointNumber(true));
 
@@ -330,6 +328,17 @@ class Debench
         }
 
         return ++$this->lastCheckPointNumber;
+    }
+
+
+    /**
+     * Get the $pathUI
+     *
+     * @return string
+     */
+    public function getPathUI(): string
+    {
+        return self::$pathUI ?? '';
     }
 
 
@@ -525,7 +534,7 @@ class Debench
 
         // ------- the minimal widget
         if ($this->isMinimalOnly()) {
-            return Template::render(self::$uiPath . '/widget.minimal.htm', [
+            return Template::render(self::$pathUI . '/widget.minimal.htm', [
                 'base' => self::$ui,
                 'ramUsage' => $this->getRamUsage(true),
                 'requestInfo' => $_SERVER['REQUEST_METHOD'] . ' ' . http_response_code(),
@@ -535,7 +544,7 @@ class Debench
 
 
         // ------- infoLog
-        $infoLog = Template::render(self::$uiPath . '/widget.log.info.htm', [
+        $infoLog = Template::render(self::$pathUI . '/widget.log.info.htm', [
             "phpVersion" => SystemInfo::getPHPVersion(),
             "opcache" => SystemInfo::getOPCacheStatus(),
             "systemAPI" => SystemInfo::getSystemAPI(),
@@ -546,7 +555,7 @@ class Debench
         $timeLog = '';
 
         foreach ($this->getCheckPoints() as $key => $cp) {
-            $timeLog .= Template::render(self::$uiPath . '/widget.log.checkpoint.htm', [
+            $timeLog .= Template::render(self::$pathUI . '/widget.log.checkpoint.htm', [
                 "name" => $this->getTagName($key),
                 "path" => $cp->getPath(),
                 "fileName" => basename($cp->getPath()),
@@ -559,15 +568,15 @@ class Debench
 
 
         // ------- logPost
-        $logPost = $this->makeOutputLoop(self::$uiPath . '/widget.log.request.post.htm', $_POST, false);
+        $logPost = $this->makeOutputLoop(self::$pathUI . '/widget.log.request.post.htm', $_POST, false);
 
 
         // ------- logGet
-        $logGet = $this->makeOutputLoop(self::$uiPath . '/widget.log.request.get.htm', $_GET, false);
+        $logGet = $this->makeOutputLoop(self::$pathUI . '/widget.log.request.get.htm', $_GET, false);
 
 
         // ------- logCookie
-        $logCookie = $this->makeOutputLoop(self::$uiPath . '/widget.log.request.cookie.htm', $_COOKIE, false);
+        $logCookie = $this->makeOutputLoop(self::$pathUI . '/widget.log.request.cookie.htm', $_COOKIE, false);
 
 
         if (empty($logPost . $logGet . $logCookie)) {
@@ -581,7 +590,7 @@ class Debench
         } else if (!isset($_SESSION)) {
             $logSession = '<b>_SESSION</b> is not available!';
         } else {
-            $logSession = $this->makeOutputLoop(self::$uiPath . '/widget.log.request.session.htm', $_SESSION);
+            $logSession = $this->makeOutputLoop(self::$pathUI . '/widget.log.request.session.htm', $_SESSION);
         }
 
 
@@ -592,7 +601,7 @@ class Debench
             $file = basename($exception->getFile());
             $path = str_replace($file, "<b>$file</b>", $exception->getFile());
 
-            $logException .= Template::render(self::$uiPath . '/widget.log.exception.htm', [
+            $logException .= Template::render(self::$pathUI . '/widget.log.exception.htm', [
                 // "code" => $exception->getCode(),
                 "message" => $exception->getMessage(),
                 "path" => $path,
@@ -606,7 +615,7 @@ class Debench
 
 
         // ------- the main widget
-        return Template::render(self::$uiPath . '/widget.htm', [
+        return Template::render(self::$pathUI . '/widget.htm', [
             'base' => self::$ui,
             'ramUsagePeak' => $this->getRamUsagePeak(true),
             'ramUsage' => $this->getRamUsage(true),
@@ -677,10 +686,7 @@ class Debench
     public static function getInstance(bool $enable = null, string $ui = null): Debench
     {
         if (self::$instance === null) {
-            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
-            $path = dirname(($backtrace[0])['file']);
-
-            self::$instance = new self($enable, $ui, $path);
+            self::$instance = new self($enable, $ui);
         }
 
         return self::$instance;
