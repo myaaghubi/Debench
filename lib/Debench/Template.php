@@ -20,30 +20,21 @@ class Template
     /**
      * Make suer to have the UI dir
      *
-     * @param  string $pathToWrite
      * @param  string $targetPath
      * @return void
      */
-    public static function makeUI(string $pathToWrite, string $targetPath): void
+    public static function makeUI(string $targetPath): void
     {
-        $currentPath = __DIR__;
+        // for ui/assets
+        @mkdir($targetPath, 0777, true);
 
         // for path
-        if (!is_dir($pathToWrite)) {
-            @mkdir($pathToWrite, 0777, true);
-            
-            if (!is_dir($pathToWrite) || !is_writable($pathToWrite)) {
-                throw new \Exception("Directory not exists or not writable! `$pathToWrite` ", 500);
-            }
+        if (!is_dir($targetPath) || !is_writable($targetPath)) {
+            throw new \Exception("Directory not exists or not writable! `$targetPath` ", 500);
         }
 
-        // for ui/assets
-        if (!is_dir($targetPath)) {
-            @mkdir($targetPath, 0777, true);
-
-            // Copy the template from ui dir into your webroot dir if it doesn't exist
-            Utils::copyDir($currentPath . '/ui', $targetPath);
-        }
+        // Copy the templates files from ui dir into your webroot dir if files don't match
+        Utils::copyDir(__DIR__ . '/ui', $targetPath);
     }
 
 
