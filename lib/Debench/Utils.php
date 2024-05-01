@@ -15,10 +15,32 @@ namespace DEBENCH;
 class Utils
 {
     /**
+     * Get the backtrace, make sure to call it directly
+     *
+     * @return array
+     */
+    public static function getBacktrace(): array
+    {
+        $debugBTOut = [];
+
+        $debugBT = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 0);
+
+        foreach($debugBT as $btItem) {
+            if (strrpos($btItem['file'], __DIR__) === false) {
+                $debugBTOut[] = $btItem;
+            }
+        }
+
+        return $debugBTOut;
+    }
+
+
+    /**
      * Copy folder
      *
      * @param  string $from
      * @param  string $to
+     * @param  bool $checkForError
      * @return void
      */
     public static function copyDir(string $from, string $to, bool $checkForError = true): void
@@ -41,11 +63,15 @@ class Utils
         // Loop through the files in source directory
         while ($file = readdir($dir)) {
             if (($file != '.') && ($file != '..')) {
-                if (is_dir($from . DIRECTORY_SEPARATOR . $file)) {
+                $fileFrom = $from . DIRECTORY_SEPARATOR . $file;
+                $fileTo = $to . DIRECTORY_SEPARATOR . $file;
+                if (is_dir($fileFrom)) {
                     // for sub directory 
-                    Utils::copyDir($from . DIRECTORY_SEPARATOR . $file, $to . DIRECTORY_SEPARATOR . $file, false);
+                    Utils::copyDir($fileFrom, $fileTo, false);
                 } else {
-                    copy($from . DIRECTORY_SEPARATOR . $file, $to . DIRECTORY_SEPARATOR . $file);
+                    if (!file_exists($fileTo) || filesize($fileFrom) != filesize($fileTo)) {
+                        copy($fileFrom, $fileTo);
+                    }
                 }
             }
         }
