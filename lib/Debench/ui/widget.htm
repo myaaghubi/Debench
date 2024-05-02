@@ -19,20 +19,10 @@
     <li class="debench-request-block">
       <div class="debench-panel">
         <table>
-          <thead>
-            <tr>
-              <th></th>
-              <th></th>
-              <th></th>
-              <th></th>
-              <th></th>
-            </tr>
-            <tbody>
-              {{@logPost}}
-              {{@logGet}}
-              {{@logCookie}}
-            </tbody>
-          </thead>
+          
+          {{@logPost}}
+          {{@logGet}}
+          {{@logCookie}}
         </table>
       </div>
     </li>
@@ -74,7 +64,7 @@
             Session: <b>{{@session}}</b>
           </li>
           <li data-target="debench-exceptions-block">
-            Exceptions: <b>{{@exception}}</b>
+            Errors: <b>{{@exception}}</b>
           </li>
           <li>
             <i>{{@requestInfo}}</i>
