@@ -60,6 +60,8 @@ class Debench
 
         set_exception_handler([$this, 'addException']);
 
+        set_error_handler([$this, 'throwAsException']);
+
         register_shutdown_function(function () {
             if (!self::$enable || Utils::isInTestMode()) {
                 return;
@@ -520,6 +522,24 @@ class Debench
     private function getExceptions(): array
     {
         return $this->exceptions ?? [];
+    }
+
+
+    /**
+     * Throw errors as exceptions
+     * 
+     * @param int $level
+     * @param string $message
+     * @param string $file
+     * @param int $line
+     * @param array $context
+     * @return void
+     */
+    public function throwAsException(int $level, string $message, string $file = '', int $line = 0, array $context = []): void
+    {
+        $exception = new \ErrorException($message, 0, $level, $file, $line);
+
+        throw $exception;
     }
 
 
