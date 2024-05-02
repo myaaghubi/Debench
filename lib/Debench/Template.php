@@ -47,17 +47,18 @@ class Template
      */
     public static function render(string $themePath, array $params): string
     {
-        if (!file_exists($themePath)) {
-            throw new \Exception("File '$themePath` doesn't exists!");
-        }
-
         if (!isset(self::$paths)) {
             self::$paths = [];
         }
 
-        if (empty($theme = @self::$paths[$themePath])) {
-            $theme = file_get_contents($themePath);
+        if (empty(self::$paths[$themePath])) {
+            if (!file_exists($themePath)) {
+                throw new \Exception("File '$themePath` doesn't exists!");
+            }
+            self::$paths[$themePath] = file_get_contents($themePath);
         }
+
+        $theme = self::$paths[$themePath];
 
         foreach ($params as $key => $value) {
             $theme = str_replace("{{@$key}}", "$value", $theme);
