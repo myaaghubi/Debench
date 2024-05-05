@@ -25,7 +25,7 @@ class Utils
 
         $debugBT = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 0);
 
-        foreach($debugBT as $btItem) {
+        foreach ($debugBT as $btItem) {
             if (strrpos($btItem['file'], __DIR__) === false) {
                 $debugBTOut[] = $btItem;
             }
@@ -80,6 +80,27 @@ class Utils
     }
 
 
+
+    /**
+     * Delete a folder recursively
+     *
+     * @param  string $dir
+     * @return void
+     */
+    public static function deleteDir(string $dir): void
+    {
+        $glob = glob($dir);
+        foreach ($glob as $file) {
+            if (is_dir($file)) {
+                self::deleteDir("$file/*");
+                rmdir($file);
+            } else {
+                unlink($file);
+            }
+        }
+    }
+
+
     /**
      * Format bytes with B, KB, MB, 'GB', 'TB' etc.
      *
@@ -92,10 +113,10 @@ class Utils
             return '0 B';
         }
 
+        $suffixes = ['B', 'KB', 'MB', 'GB', 'TB'];
         $base = log($size, 1024);
-        $suffixes = array('B', 'KB', 'MB', 'GB', 'TB');
 
-        return round(pow(1024, $base - floor($base))) . ' ' . $suffixes[floor($base)];
+        return round(pow(1024, $base - floor($base)), 1) . ' ' . $suffixes[floor($base)];
     }
 
 
