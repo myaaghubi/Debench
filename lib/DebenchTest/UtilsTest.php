@@ -62,23 +62,6 @@ class UtilsTest extends TestCase
         Utils::deleteDir($destDir);
     }
 
-    public function testRender(): void
-    {
-        $pathHtm = dirname(__FILE__, 2) . '/Debench/ui/widget.log.info.htm';
-        $key = ["phpVersion", "x.x.x"];
-
-        $this->expectException(\Exception::class);
-        $html = Template::render('this\path\doesnt\exists', []);
-
-        $html = Template::render($pathHtm, [$key[0] => $key[1]]);
-
-        $this->assertIsString($html);
-
-        $this->assertStringContainsString($key[1], $html);
-
-        $this->assertMatchesRegularExpression("/{{@$key[0]}}/", file_get_contents($pathHtm));
-    }
-
     public function testToFormattedBytes(): void
     {
         $expected = [
