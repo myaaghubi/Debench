@@ -108,15 +108,15 @@ debench .debench-main-panel ul li[data-target="debench-info-block"]:hover {
 debench b {
   color: #333;
 }
-::-webkit-scrollbar {
+debench .debench-panel::-webkit-scrollbar {
   width: 6px;
 }
-::-webkit-scrollbar-track {
+debench .debench-panel::-webkit-scrollbar-track {
   background: #f1f1f1; 
 }
-::-webkit-scrollbar-thumb {
-  background: #e2ecf0; 
+debench .debench-panel::-webkit-scrollbar-thumb {
+  background: #555; 
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #e2ecf0; 
+debench .debench-panel::-webkit-scrollbar-thumb:hover {
+  background: #555; 
 }
