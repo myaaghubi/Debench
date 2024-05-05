@@ -19,7 +19,7 @@ class DebenchTest extends TestCase
 
     protected function tearDown(): void
     {
-        self::deleteDir($this->debench->getPathUI());
+        Utils::deleteDir($this->debench->getPathUI());
         $this->debench = null;
     }
 
@@ -110,18 +110,5 @@ class DebenchTest extends TestCase
     public function testGetInstance(): void
     {
         $this->assertInstanceOf(Debench::class, Debench::getInstance());
-    }
-
-    private static function deleteDir(string $dir): void
-    {
-        $glob = glob($dir);
-        foreach ($glob as $g) {
-            if (!is_dir($g)) {
-                unlink($g);
-            } else {
-                self::deleteDir("$g/*");
-                rmdir($g);
-            }
-        }
     }
 }
