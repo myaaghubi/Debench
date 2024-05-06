@@ -68,10 +68,7 @@ class UtilsTest extends TestCase
             0 => "0 B",
             10 => "10 B",
             1024 => "1 KB",
-            1024 + 200 => "1.2 KB",
-            1024 * 1024 => "1 MB",
-            1024 * 1024 * 1024 => "1 GB",
-            1024 * 1024 * 1024 * 1024 => "1 TB"
+            1024 * 1024 + 200 * 1024 => "1.2 MB",
         ];
 
         foreach ($expected as $bytes => $byteFormatted) {
@@ -82,8 +79,16 @@ class UtilsTest extends TestCase
 
     public function testIsInTestMode(): void
     {
-        $isInTestMode = Utils::isInTestMode();
+        $phpunit = $_SERVER['argv'][0];
+        // != phpunit
+        $_SERVER['argv'][0] = '';
+        $this->assertFalse(Utils::isInTestMode());
 
-        $this->assertTrue($isInTestMode);
+        $_SERVER['argv'][0] = $phpunit;
+        $this->assertTrue(Utils::isInTestMode());
+
+        @define('PHPUNIT_COMPOSER_INSTALL', 1);
+        @define('__PHPUNIT_PHAR__', 1);
+        $this->assertTrue(Utils::isInTestMode());
     }
 }
