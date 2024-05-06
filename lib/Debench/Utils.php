@@ -49,10 +49,6 @@ class Utils
             if (!file_exists($from)) {
                 throw new \Exception("File/Dir source '$from` doesn't exists!");
             }
-            $toBack = dirname($to, 1);
-            if (!is_writable($toBack)) {
-                throw new \Exception("Dir dest '$toBack' is not writable!");
-            }
         }
 
         // open the source directory
@@ -127,15 +123,11 @@ class Utils
      */
     public static function isInTestMode(): bool
     {
-        if (PHP_SAPI != 'cli') {
-            return false;
-        }
-
-        if (defined('PHPUNIT_COMPOSER_INSTALL') && defined('__PHPUNIT_PHAR__')) {
+        if (SystemInfo::isCLI() && defined('PHPUNIT_COMPOSER_INSTALL') && defined('__PHPUNIT_PHAR__')) {
             return true;
         }
 
-        if (strpos($_SERVER['argv'][0], 'phpunit') !== false) {
+        if (SystemInfo::isCLI() && strpos($_SERVER['argv'][0], 'phpunit') !== false) {
             return true;
         }
 
