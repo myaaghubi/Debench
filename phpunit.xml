@@ -4,7 +4,7 @@
          bootstrap="vendor/autoload.php"
          cacheResultFile=".phpunit.cache/test-results"
          executionOrder="depends,defects"
-         forceCoversAnnotation="true"
+         forceCoversAnnotation="false"
          beStrictAboutCoversAnnotation="true"
          beStrictAboutOutputDuringTests="true"
          beStrictAboutTodoAnnotatedTests="true"
@@ -24,5 +24,10 @@
         <include>
             <directory suffix=".php">lib/Debench</directory>
         </include>
+        
+    <report>
+      <html outputDirectory="build/coverage"/>
+      <text outputFile="build/coverage.txt"/>
+    </report>
     </coverage>
 </phpunit>
