@@ -12,6 +12,8 @@ declare(strict_types=1);
 
 namespace DEBENCH;
 
+use Exception;
+
 class Debench
 {
     private static bool $enable;
@@ -60,19 +62,32 @@ class Debench
 
         set_exception_handler([$this, 'addException']);
 
-        set_error_handler([$this, 'throwAsException']);
+        set_error_handler([$this, 'addAsException']);
 
-        register_shutdown_function(function () {
-            if (!self::$enable || Utils::isInTestMode()) {
-                return;
-            }
-
-            $this->processCheckPoints();
-
-            print $this->makeOutput();
-        });
+        register_shutdown_function([$this, 'shutdownFunction']);
 
         self::$instance = $this;
+    }
+
+
+    /**
+     * To finalize the Debench
+     * 
+     * @return bool
+     */
+    private function shutdownFunction(): bool
+    {
+        if (!self::$enable) {
+            return false;
+        }
+
+        $this->processCheckPoints();
+
+        $output = $this->makeOutput();
+
+        print Utils::isInTestMode() ? '' : $output;
+
+        return !empty($output);
     }
 
 
@@ -83,8 +98,8 @@ class Debench
      */
     private function startSession(): void
     {
-        if (!SystemInfo::isCLI() && session_status() != PHP_SESSION_ACTIVE) {
-            session_start();
+        if (session_status() != PHP_SESSION_ACTIVE) {
+            @session_start();
         }
     }
 
@@ -97,28 +112,18 @@ class Debench
      * @param  string $path
      * @param  int $lineNumber
      * @param  string $key
-     * @param  bool $addAtFirst
      * @return void
      */
-    private function addCheckPoint(int $currentTime, int $memory, string $path, int $lineNumber, string $key = '', bool $addAtFirst = false): void
+    private function addCheckPoint(int $currentTime, int $memory, string $path, int $lineNumber, string $key = ''): void
     {
-        if (empty($key)) {
-            throw new \Exception("The `key` can't be empty!");
-        }
-
-        if (!$this->checkTag($key)) {
-            throw new \Exception("The `key` is not in the right format!");
+        if (empty($key) || !$this->checkTag($key)) {
+            throw new \Exception("The `key` is empty or is not in the right format!!");
         }
 
         $checkPoint = new CheckPoint($currentTime, $memory, $path, $lineNumber);
 
         if (!isset($this->checkPoints)) {
             $this->checkPoints = [];
-        }
-
-        if ($addAtFirst) {
-            $this->checkPoints = [$key => $checkPoint] + $this->checkPoints;
-            return;
         }
 
         $this->checkPoints[$key] = $checkPoint;
@@ -166,11 +171,6 @@ class Debench
 
         $file = $debugBT['file'];
         $line = $debugBT['line'];
-
-        if (strrpos($file, __FILE__) !== false) {
-            $file = '-';
-            $line = '-';
-        }
 
 
         $tag = $this->makeTag($tag, $this->incrementLastCheckPointNumber(true));
@@ -422,7 +422,31 @@ class Debench
      */
     public function getScriptName(): string
     {
-        return $_SERVER['SCRIPT_NAME'];
+        return $_SERVER['SCRIPT_NAME'] ?? 'non';
+    }
+
+
+    /**
+     * Get the $_SERVER['REQUEST_METHOD']
+     *
+     * @return string
+     */
+    public function getRequestMethod(): string
+    {
+        return $_SERVER['REQUEST_METHOD'] ?? 'non';
+    }
+
+
+    /**
+     * Get the http_response_code()
+     *
+     * @return string
+     */
+    public function getResponseCode(): int
+    {
+        $rCode = http_response_code();
+        // 501: Not Implemented
+        return $rCode === false ? 501 : $rCode;
     }
 
 
@@ -535,11 +559,13 @@ class Debench
      * @param array $context
      * @return void
      */
-    public function throwAsException(int $level, string $message, string $file = '', int $line = 0, array $context = []): void
+    public function addAsException(int $level, string $message, string $file = '', int $line = 0, array $context = []): void
     {
-        $exception = new \ErrorException($message, 0, $level, $file, $line);
+        if (!isset($this->exceptions)) {
+            $this->exceptions = [];
+        }
 
-        throw $exception;
+        $this->exceptions[]  = new \ErrorException($message, 0, $level, $file, $line);
     }
 
 
@@ -557,7 +583,7 @@ class Debench
             return Template::render(self::$pathUI . '/widget.minimal.htm', [
                 'base' => self::$ui,
                 'ramUsage' => $this->getRamUsage(true),
-                'requestInfo' => $_SERVER['REQUEST_METHOD'] . ' ' . http_response_code(),
+                'requestInfo' => $this->getRequestMethod() . ' ' . $this->getResponseCode(),
                 'fullExecTime' => $eTime
             ]);
         }
@@ -605,12 +631,12 @@ class Debench
 
 
         // ------- logSession
-        if (SystemInfo::isCLI()) {
-            $logSession = 'CLI mode!';
-        } else if (!isset($_SESSION)) {
+        $session = isset($_SESSION) ? $_SESSION : null;
+
+        $logSession = $this->makeOutputLoop(self::$pathUI . '/widget.log.request.session.htm', $session);
+
+        if (!isset($session)) {
             $logSession = '<b>_SESSION</b> is not available!';
-        } else {
-            $logSession = $this->makeOutputLoop(self::$pathUI . '/widget.log.request.session.htm', $_SESSION);
         }
 
 
@@ -651,7 +677,7 @@ class Debench
             'timeLog' => $timeLog,
             'logException' => $logException,
             'exception' => count($this->getExceptions()),
-            'requestInfo' => $_SERVER['REQUEST_METHOD'] . ' ' . http_response_code(),
+            'requestInfo' => $this->getRequestMethod() . ' ' . $this->getResponseCode(),
             'fullExecTime' => $eTime
         ]);
     }
@@ -662,7 +688,7 @@ class Debench
      *
      * @return string
      */
-    private function makeOutputLoop(string $theme, array $data, string|false $message = ''): string
+    private function makeOutputLoop(string $theme, array|null $data, string|false $message = ''): string
     {
         if (empty($data)) {
             if ($message === false) {
