@@ -54,18 +54,21 @@ class SystemInfo
      */
     public static function getOPCacheStatus(): string
     {
-        if (!function_exists('opcache_get_status') || (!extension_loaded("opcache") && !extension_loaded("Zend OPcache"))) {
+        if (
+            !function_exists('opcache_get_status') &&
+            (!extension_loaded("opcache") && !extension_loaded("Zend OPcache"))
+        ) {
             return 'Off (Not Loaded)';
         }
 
-        if (!is_array(opcache_get_status()) || !isset(opcache_get_status()['opcache_enabled'])) {
-            return 'Off';
+        if (
+            is_array(opcache_get_status()) &&
+            isset(opcache_get_status()['opcache_enabled']) &&
+            opcache_get_status()['opcache_enabled'] == 1
+        ) {
+            return 'On';
         }
 
-        if (opcache_get_status()['opcache_enabled'] != 1) {
-            return 'Off';
-        }
-
-        return 'On';
+        return 'Off';
     }
 }
