@@ -5,21 +5,20 @@
     <li class="debench-info-block">
       <div class="debench-panel">
         <table>
-        {{@infoLog}}
+          {{@infoLog}}
         </table>
       </div>
     </li>
-    <li class="debench-checkpoints-block">
+    <li class="debench-checkpoint-block">
       <div class="debench-panel">
         <table>
-        {{@timeLog}}
+          {{@timeLog}}
         </table>
       </div>
     </li>
     <li class="debench-request-block">
       <div class="debench-panel">
         <table>
-          
           {{@logPost}}
           {{@logGet}}
           {{@logCookie}}
@@ -31,10 +30,17 @@
         {{@sessionLog}}
       </div>
     </li>
-    <li class="debench-exceptions-block">
+    <li class="debench-exception-block">
       <div class="debench-panel">
         <table>
-        {{@logException}}
+          {{@logException}}
+        </table>
+      </div>
+    </li>
+    <li class="debench-message-block">
+      <div class="debench-panel">
+        <table>
+          {{@logMessage}}
         </table>
       </div>
     </li>
@@ -42,8 +48,8 @@
       <div class="debench-panel debench-main-panel-minimal">
         <ul>
           <li data-target="debench-panel-toggle">
-            <b>{{@fullExecTime}} ms</b> / 
-            <b>{{@ramUsage}}</b> | 
+            <b>{{@fullExecTime}} ms</b> /
+            <b>{{@ramUsage}}</b> |
             {{@requestInfo}}
           </li>
         </ul>
@@ -53,18 +59,21 @@
           <li data-target="debench-info-block">
             <image width="12px" height="12px" src="{{@base}}/debench/assets/img/info.png"></image>
           </li>
-          <li data-target="debench-checkpoints-block">
+          <li data-target="debench-checkpoint-block">
             Time: <b>{{@fullExecTime}} ms</b>,
             Memory: <b>{{@ramUsage}}</b> (<span title="Ram Usage Peak: {{@ramUsagePeak}} ms">{{@ramUsagePeak}}</span>)
+          </li>
+          <li data-target="debench-exception-block">
+            Errors: <b>{{@exception}}</b>
+          </li>
+          <li data-target="debench-message-block">
+            Messages: <b>{{@message}}</b>
           </li>
           <li data-target="debench-request-block">
             Request: <b>{{@request}}</b>
           </li>
           <li data-target="debench-session-block">
             Session: <b>{{@session}}</b>
-          </li>
-          <li data-target="debench-exceptions-block">
-            Errors: <b>{{@exception}}</b>
           </li>
           <li>
             <i>{{@requestInfo}}</i>
