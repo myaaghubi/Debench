@@ -231,7 +231,7 @@ class DebenchTest extends TestCase
 
     public function testAddException(): void
     {
-        self::callMethod($this->debench, 'addException', [new \Exception('oh no')]);
+        $this->debench->addException(new \Exception('oh no'));
         $exceptions = self::callMethod($this->debench, 'getExceptions');
         $this->assertEquals(1, count($exceptions));
     }
