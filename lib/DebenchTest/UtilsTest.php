@@ -17,7 +17,7 @@ class UtilsTest extends TestCase
         $bt = Utils::getBacktrace();
         $this->assertIsArray($bt);
         $this->assertGreaterThan(1, count($bt));
-        $this->assertStringNotContainsString('Debench', $bt[0]['file']);
+        $this->assertStringNotContainsString(__DIR__, $bt[0]['file']);
     }
 
     public function testDeleteDir(): void
