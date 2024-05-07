@@ -12,8 +12,6 @@ declare(strict_types=1);
 
 namespace DEBENCH;
 
-use Exception;
-
 class Debench
 {
     private static bool $enable;
@@ -24,6 +22,7 @@ class Debench
 
     private array $checkPoints;
     private array $exceptions;
+    private static array $messages;
 
     private int $initPointMS;
     private int $endPointMS;
@@ -523,6 +522,39 @@ class Debench
 
 
     /**
+     * Add a message as an info
+     * 
+     * @param  string $message
+     * @return void
+     */
+    public static function info(string $message = ''): void
+    {
+        if (!isset(self::$messages)) {
+            self::$messages = [];
+        }
+
+        $lastBT = Utils::getBacktrace()[0];
+        $path = $lastBT['file'];
+        $line = $lastBT['line'];
+
+        $messageObject = new Message($message, $path, $line);
+
+        self::$messages[] = $messageObject;
+    }
+
+
+    /**
+     * Get the exceptions array
+     * 
+     * @return array
+     */
+    public static function messages(): array
+    {
+        return self::$messages ?? [];
+    }
+
+
+    /**
      * Add an exception to exceptions array
      * 
      * @param  Throwable $exception
@@ -640,6 +672,26 @@ class Debench
         }
 
 
+        // ------- logMessages
+        $logMessage = '';
+
+        foreach (self::messages() as $message) {
+            $file = basename($message->getPath());
+            $path = str_replace($file, "<b>$file</b>", $message->getPath());
+
+            $logMessage .= Template::render(self::$pathUI . '/widget.log.message.htm', [
+                // "code" => $exception->getCode(),
+                "message" => $message->getMessage(),
+                "path" => $path,
+                "line" => $message->getLineNumber(),
+            ]);
+        }
+
+        if (empty($logMessage)) {
+            $logMessage = '<b>Nothing</b> Yet!';
+        }
+
+
         // ------- logException
         $logException = '';
 
@@ -675,6 +727,8 @@ class Debench
             'sessionLog' => $logSession,
             'infoLog' => $infoLog,
             'timeLog' => $timeLog,
+            'logMessage' => $logMessage,
+            'message' => count(self::messages()),
             'logException' => $logException,
             'exception' => count($this->getExceptions()),
             'requestInfo' => $this->getRequestMethod() . ' ' . $this->getResponseCode(),

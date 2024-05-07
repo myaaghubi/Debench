@@ -229,6 +229,14 @@ class DebenchTest extends TestCase
         $this->assertGreaterThan(5, $this->debench->getLoadedFilesCount());
     }
 
+    public function testMessages(): void
+    {
+        $this->assertCount(0, Debench::messages());
+
+        Debench::info('oops');
+        $this->assertCount(1, Debench::messages());
+    }
+
     public function testAddException(): void
     {
         $this->debench->addException(new \Exception('oh no'));
