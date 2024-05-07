@@ -30,18 +30,25 @@ class SystemInfoTest extends TestCase
         $this->assertTrue($var);
     }
 
-    public static bool $function_exists = false; 
-    public static bool $opcache_get_status = false; 
+    public static bool $extension_loaded = false;
+    public static bool $function_exists = false;
+    public static bool $opcache_get_status = false;
+
     public function testGetOPCacheStatus(): void
     {
-        self::$function_exists = false; 
-        self::$opcache_get_status = false; 
+        self::$extension_loaded = false;
+        self::$function_exists = false;
+        self::$opcache_get_status = false;
+
         $this->assertEquals('Off (Not Loaded)', SystemInfo::getOPCacheStatus());
+
+        self::$extension_loaded = true;
+        $this->assertEquals('Off', SystemInfo::getOPCacheStatus());
 
         self::$function_exists = true;
         $this->assertEquals('Off', SystemInfo::getOPCacheStatus());
 
-        self::$opcache_get_status = true; 
+        self::$opcache_get_status = true;
         $this->assertEquals('On', SystemInfo::getOPCacheStatus());
     }
 }
@@ -49,11 +56,17 @@ class SystemInfoTest extends TestCase
 // for mocking
 function opcache_get_status()
 {
-    return ['opcache_enabled'=>SystemInfoTest::$opcache_get_status];
+    return ['opcache_enabled' => SystemInfoTest::$opcache_get_status];
 }
 
 // for mocking
 function function_exists()
 {
     return SystemInfoTest::$function_exists;
+}
+
+// for mocking
+function extension_loaded()
+{
+    return SystemInfoTest::$extension_loaded;
 }

@@ -20,7 +20,12 @@
 	],
 	"autoload": {
 		"classmap": [
-			"lib/"
+			"lib/Debench"
+		]
+	},
+	"autoload-dev": {
+		"classmap": [
+			"lib/DebenchTest"
 		]
 	},
 	"require-dev": {
