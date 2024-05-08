@@ -358,15 +358,16 @@ class Debench
      * Get the ram usage
      *
      * @param  bool $formatted
+     * @param  bool $roundUnderMB
      * @return int|string
      */
-    public function getRamUsage(bool $formatted = false): int|string
+    public function getRamUsage(bool $formatted = false, bool $roundUnderMB = false): int|string
     {
         // true => memory_real_usage
         $peak = memory_get_usage();
 
         if ($formatted)
-            return Utils::toFormattedBytes($peak);
+            return Utils::toFormattedBytes($peak, $roundUnderMB);
 
         return $peak;
     }
@@ -376,15 +377,16 @@ class Debench
      * Get the real ram usage (peak)
      *
      * @param  bool $formatted
+     * @param  bool $roundUnderMB
      * @return int|string
      */
-    public function getRamUsagePeak(bool $formatted = false): int|string
+    public function getRamUsagePeak(bool $formatted = false, bool $roundUnderMB = false): int|string
     {
         // true => memory_real_usage
         $peak = memory_get_peak_usage(true);
 
         if ($formatted)
-            return Utils::toFormattedBytes($peak);
+            return Utils::toFormattedBytes($peak, $roundUnderMB);
 
         return $peak;
     }
@@ -614,7 +616,7 @@ class Debench
         if ($this->isMinimalOnly()) {
             return Template::render(self::$pathUI . '/widget.minimal.htm', [
                 'base' => self::$ui,
-                'ramUsage' => $this->getRamUsage(true),
+                'ramUsage' => $this->getRamUsage(true, true),
                 'requestInfo' => $this->getRequestMethod() . ' ' . $this->getResponseCode(),
                 'fullExecTime' => $eTime
             ]);
@@ -715,8 +717,8 @@ class Debench
         // ------- the main widget
         return Template::render(self::$pathUI . '/widget.htm', [
             'base' => self::$ui,
-            'ramUsagePeak' => $this->getRamUsagePeak(true),
-            'ramUsage' => $this->getRamUsage(true),
+            'ramUsagePeak' => $this->getRamUsagePeak(true, true),
+            'ramUsage' => $this->getRamUsage(true, true),
             // 'includedFilesCount' => $this->getLoadedFilesCount(),
             'preloadTime' => $this->initPointMS - $this->getRequestTime(),
             'request' => count($_POST) + count($_GET) + count($_COOKIE),
