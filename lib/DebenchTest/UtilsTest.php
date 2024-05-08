@@ -64,16 +64,19 @@ class UtilsTest extends TestCase
 
     public function testToFormattedBytes(): void
     {
-        $expected = [
-            0 => "0 B",
-            10 => "10 B",
-            1024 => "1 KB",
-            1024 * 1024 + 200 * 1024 => "1.2 MB",
+        // [bytes:int, roundUnderMB:bool, expectedResult:string]
+        $expects = [
+            [0, false, "0 B"],
+            [10, false, "10 B"],
+            [1024 + 100, false, "1.1 KB"],
+            [1024 + 100, true, "1 KB"],
+            [1024 * 1024 + 200 * 1024, false, "1.2 MB"],
+            [1024 * 1024 + 200 * 1024, true, "1.2 MB"],
         ];
 
-        foreach ($expected as $bytes => $byteFormatted) {
-            $fb = Utils::toFormattedBytes($bytes);
-            $this->assertEquals($byteFormatted, $fb);
+        foreach ($expects as $item) {
+            $fb = Utils::toFormattedBytes($item[0], $item[1]);
+            $this->assertEquals($item[2], $fb);
         }
     }
 

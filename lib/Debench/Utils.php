@@ -101,9 +101,10 @@ class Utils
      * Format bytes with B, KB, MB, 'GB', 'TB' etc.
      *
      * @param  int $size
+     * @param  bool $roundUnderMB
      * @return string
      */
-    public static function toFormattedBytes(int $size = 0): string
+    public static function toFormattedBytes(int $size = 0, bool $roundUnderMB = false): string
     {
         if ($size == 0) {
             return '0 B';
@@ -112,7 +113,12 @@ class Utils
         $suffixes = ['B', 'KB', 'MB', 'GB', 'TB'];
         $base = log($size, 1024);
 
-        return round(pow(1024, $base - floor($base)), 1) . ' ' . $suffixes[floor($base)];
+        $round = 1;
+        if ($roundUnderMB && floor($base) < array_search('MB', $suffixes)) {
+            $round = 0;
+        }
+
+        return round(pow(1024, $base - floor($base)), $round) . ' ' . $suffixes[floor($base)];
     }
 
 
