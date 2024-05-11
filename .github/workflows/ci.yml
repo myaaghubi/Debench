@@ -35,7 +35,7 @@ jobs:
         run: composer install --no-progress
 
       - name: Test with phpunit
-        run: vendor/bin/phpunit --configuration phpunit.xml
+        run: vendor/bin/phpunit --configuration phpunit.xml --coverage-text
         
       - name: Make code coverage badge
         uses: coverallsapp/github-action@v2
