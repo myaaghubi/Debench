@@ -1,4 +1,5 @@
 # Debench
+[![Test Debench](https://github.com/myaaghubi/Debench/actions/workflows/ci.yml/badge.svg)](https://github.com/myaaghubi/Debench/actions/workflows/ci.yml) [![Debench Coverage Status](https://coveralls.io/repos/github/myaaghubi/Debench/badge.svg?branch=main)](https://coveralls.io/github/myaaghubi/Debench?branch=main) ![Debench release (latest by date)](https://img.shields.io/github/v/release/myaaghubi/Debench) ![Debench License](https://img.shields.io/github/license/myaaghubi/Debench)
 
 A small debug/benchmark helper for PHP
 
@@ -31,16 +32,18 @@ Debench::point('one');
 $st .= str_repeat("Debench!", 10000);
 
 // step two
+Debench::info('step two');
 Debench::point("two");
 ```
 For `minimal` mode:
 ```php
+// it is safe and secure to use for production mode
 // $debench->setMinimalOnly(true);
 Debench::minimalOnly(true);
 ```
 For `production` mode
 ```php
-// this one is better
+// it's better to do it on initializing
 //$debench = new Debench(false);
 Debench::getInstance(false);
 // or
