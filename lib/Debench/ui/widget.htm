@@ -88,7 +88,7 @@
 
   <script>
     var debenchBase = '{{@base}}';
-    var debenchPanelMain = '{{@debench-main-panel}}';
+    var debenchPanelMain = '';
     var debenchPanelLast = '';
 
     if (typeof jQuery != 'undefined') {
@@ -96,5 +96,6 @@
     }
   </script>
   <script src="{{@base}}/debench/assets/js/jquery.min.js"></script>
+  <script src="{{@base}}/debench/assets/js/jquery.cookie-1.4.1.min.js"></script>
   <script src="{{@base}}/debench/assets/js/debench.js"></script>
 </debench>
