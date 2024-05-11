@@ -36,3 +36,6 @@ jobs:
 
       - name: Test with phpunit
         run: vendor/bin/phpunit --configuration phpunit.xml
+        
+      - name: Make code coverage badge
+        uses: coverallsapp/github-action@v2
