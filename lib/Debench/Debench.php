@@ -14,8 +14,15 @@ namespace DEBENCH;
 
 class Debench
 {
-    private bool $minimal;
+    private static bool $enable;
+    private static string $ui;
+    private static string $pathCalled;
+    private static string $pathUI;
+    private static bool $minimalOnly;
+
     private array $checkPoints;
+    private array $exceptions;
+    private static array $messages;
 
     private int $initPointMS;
     private int $endPointMS;
@@ -24,86 +31,118 @@ class Debench
 
     private static ?Debench $instance = null;
 
+
     /**
      * Debench constructor
      *
      * @param  bool $enable
      * @param  string $ui
-     * @param  string $path
      * @return void
      */
-    public function __construct(private bool $enable = true, private string $ui = 'theme', private string $path = '')
+    public function __construct(bool $enable = null, string $ui = null)
     {
-        if (!$this->enable) {
+        self::$enable = $enable ?? true;
+        self::$ui = $ui ? rtrim($ui, '/') : 'theme';
+        self::$pathCalled = dirname((Utils::getBacktrace()[0])['file']);
+        self::$pathUI = self::$pathCalled . '/' . self::$ui . '/debench';
+
+        if (!self::$enable) {
             return;
         }
 
-        $this->minimal = false;
-        $this->checkPoints = [];
-        $this->lastCheckPointInMS = 0;
-        $this->lastCheckPointNumber = 0;
+        // make sure about the theme
+        Template::makeUI(self::$pathUI);
 
-        $this->newPoint('debench');
+        // Script initial point
+        $this->addScriptPoint('Script');
 
-        $this->ui = rtrim($ui, '/');
+        // Debench initial point
+        $this->newPoint('Debench');
 
-        if (empty($path)) {
-            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-            $this->path = dirname(($backtrace[0])['file']);
-        }
+        set_exception_handler([$this, 'addException']);
 
-        // check for UI
-        $this->checkUI();
+        set_error_handler([$this, 'addAsException']);
 
-
-        if (PHP_SAPI !== 'cli' && session_status() != PHP_SESSION_ACTIVE) {
-            @session_start();
-        }
-
-        register_shutdown_function(function () {
-            if (!$this->enable) {
-                return;
-            }
-
-            if (Utils::isInTestMode()) {
-                return;
-            }
-
-            $this->calculateExecutionTime();
-            print $this->makeOutput();
-        });
+        register_shutdown_function([$this, 'shutdownFunction']);
 
         self::$instance = $this;
     }
 
 
     /**
-     * Copy the template from ui dir into your webroot dir if
-     * it doesn't exist
-     *
+     * To finalize the Debench
+     * 
+     * @return bool
+     */
+    private function shutdownFunction(): bool
+    {
+        if (!self::$enable) {
+            return false;
+        }
+
+        $this->processCheckPoints();
+
+        $output = $this->makeOutput();
+
+        print Utils::isInTestMode() ? '' : $output;
+
+        return !empty($output);
+    }
+
+
+    /**
+     * Run session_start()
+     * 
      * @return void
      */
-    public function checkUI(): void
+    private function startSession(): void
     {
-        $currentPath = __DIR__;
-        $basePath = $this->path;
+        if (session_status() != PHP_SESSION_ACTIVE) {
+            @session_start();
+        }
+    }
 
-        $uiPath = $basePath . '/' . $this->ui;
-        $uiPathFull = $uiPath . '/debench';
 
-        // for assets
-        if (!is_dir($uiPath)) {
-            if (!is_dir($basePath) || !is_writable($basePath)) {
-                throw new \Exception("Directory not exists or not writable! `$basePath` ", 500);
-            }
-
-            @mkdir($uiPath);
+    /**
+     * Add a new item in checkpoint[]
+     * 
+     * @param  int $currentTime
+     * @param  int $memory
+     * @param  string $path
+     * @param  int $lineNumber
+     * @param  string $key
+     * @return void
+     */
+    private function addCheckPoint(int $currentTime, int $memory, string $path, int $lineNumber, string $key = ''): void
+    {
+        if (empty($key) || !$this->checkTag($key)) {
+            throw new \Exception("The `key` is empty or is not in the right format!!");
         }
 
-        // for assets
-        if (!is_dir($uiPathFull)) {
-            Utils::copyDir($currentPath . '/ui', $uiPathFull);
+        $checkPoint = new CheckPoint($currentTime, $memory, $path, $lineNumber);
+
+        if (!isset($this->checkPoints)) {
+            $this->checkPoints = [];
         }
+
+        $this->checkPoints[$key] = $checkPoint;
+    }
+
+
+    /**
+     * Add the first checkpoint
+     *
+     * @param  string $tag
+     * @return void
+     */
+    private function addScriptPoint(string $tag = ''): void
+    {
+        $time = $this->getRequestTime();
+        $path = $this->getScriptName();
+        $tag = $this->makeTag($tag, $this->incrementLastCheckPointNumber(true));
+
+        // add a check point as preload
+        $this->addCheckPoint($time, 0, $path, 0, $tag);
     }
 
 
@@ -111,11 +150,11 @@ class Debench
      * Add a new checkpoint
      * 
      * @param  string $tag
-     * @return object
+     * @return void
      */
     public function newPoint(string $tag = ''): void
     {
-        if (!$this->enable) {
+        if (!self::$enable) {
             return;
         }
 
@@ -126,34 +165,18 @@ class Debench
 
         $ramUsage = $this->getRamUsage();
 
-        if (empty($tag)) {
-            $tag = 'point ' . ($this->lastCheckPointNumber + 1);
-        }
+        // debug_backtrace
+        $debugBT = Utils::getBacktrace()[0];
 
-        // to avoid duplicate tags(keys)
-        $tag .= '#' . ($this->lastCheckPointNumber + 1);
+        $file = $debugBT['file'];
+        $line = $debugBT['line'];
 
-        $dbc = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-        $dbcIndex = 0;
 
-        // specify calls from self class
-        while (count($dbc) > $dbcIndex && strrpos(($dbc[$dbcIndex])['file'], __FILE__) !== false) {
-            $dbcIndex += 1;
-        }
+        $tag = $this->makeTag($tag, $this->incrementLastCheckPointNumber(true));
 
-        $file = ($dbc[$dbcIndex])['file'];
-        $line = ($dbc[$dbcIndex])['line'];
+        $this->addCheckPoint($currentTime, $ramUsage, $file, $line, $tag);
 
-        if (strrpos($file, __FILE__) !== false) {
-            $file = '-';
-            $line = '-';
-        }
-
-        $checkPoint = new CheckPoint($currentTime, $ramUsage, $file, $line);
-        $this->checkPoints[$tag] = $checkPoint;
-
-        $this->lastCheckPointInMS = $currentTime;
-        $this->lastCheckPointNumber += 1;
+        $this->setLastCheckPointInMS($currentTime);
     }
 
 
@@ -162,23 +185,26 @@ class Debench
      *
      * @return void
      */
-    private function calculateExecutionTime(): void
+    private function processCheckPoints(): void
     {
-        // may the below loop take some time
+        // depends on the the array, it may the below loop take some time to process
         $this->endPointMS = $this->getCurrentTime();
 
         $prevKey = '';
         $prevCP = null;
-        foreach ($this->checkPoints as $key => $cp) {
+
+        foreach ($this->getCheckPoints() as $key => $cp) {
             if (!empty($prevKey) && $prevCP != null) {
-                $this->checkPoints[$prevKey]->setTimestamp($cp->getTimestamp() - $prevCP->getTimestamp());
+                $diff = $cp->getTimestamp() - $prevCP->getTimestamp();
+                $this->checkPoints[$prevKey]->setTimestamp($diff);
             }
 
             $prevKey = $key;
             $prevCP = $cp;
         }
 
-        $this->checkPoints[$prevKey]->setTimestamp($this->endPointMS - $prevCP->getTimestamp());
+        $diff = $this->endPointMS - $prevCP->getTimestamp();
+        $this->checkPoints[$prevKey]->setTimestamp($diff);
     }
 
 
@@ -187,21 +213,33 @@ class Debench
      *
      * @return bool
      */
-    public function isMinimal(): bool
+    public function isMinimalOnly(): bool
     {
-        return $this->minimal;
+        return self::$minimalOnly ?? false;
     }
 
 
     /**
      * Set Debench to only minimal mode
      *
-     * @param  bool $minimalMode
+     * @param  bool $minimalModeOnly
      * @return void
      */
-    public function setMinimal(bool $minimalMode): void
+    public function setMinimalOnly(bool $minimalModeOnly): void
     {
-        $this->minimal = $minimalMode;
+        self::$minimalOnly = $minimalModeOnly;
+    }
+
+
+    /**
+     * Set Debench to only minimal mode
+     *
+     * @param  bool $minimalModeOnly
+     * @return void
+     */
+    public static function minimalOnly(bool $minimalModeOnly): void
+    {
+        self::$minimalOnly = $minimalModeOnly;
     }
 
 
@@ -212,7 +250,7 @@ class Debench
      */
     public function isEnable(): bool
     {
-        return $this->enable;
+        return self::$enable;
     }
 
 
@@ -224,7 +262,19 @@ class Debench
      */
     public function setEnable(bool $enable): void
     {
-        $this->enable = $enable;
+        self::$enable = $enable;
+    }
+
+
+    /**
+     * Set Debench enable
+     *
+     * @param  bool $enable
+     * @return void
+     */
+    public static function enable(bool $enable): void
+    {
+        self::$enable = $enable;
     }
 
 
@@ -235,7 +285,19 @@ class Debench
      */
     private function getLastCheckPointInMS(): int
     {
-        return $this->lastCheckPointInMS;
+        return $this->lastCheckPointInMS ?? 0;
+    }
+
+
+    /**
+     * Set the last checkpoint in milliseconds
+     *
+     * @param  int $timestamp
+     * @return void
+     */
+    private function setLastCheckPointInMS(int $timestamp): void
+    {
+        $this->lastCheckPointInMS = $timestamp;
     }
 
 
@@ -246,7 +308,38 @@ class Debench
      */
     private function getLastCheckPointNumber(): int
     {
-        return $this->lastCheckPointNumber;
+        return $this->lastCheckPointNumber ?? 0;
+    }
+
+
+    /**
+     * Get the last checkpoint number, and increase it
+     *
+     * @param  bool $postfix
+     * @return int
+     */
+    private function incrementLastCheckPointNumber(bool $postfix = true): int
+    {
+        if (!isset($this->lastCheckPointNumber)) {
+            $this->lastCheckPointNumber = 0;
+        }
+
+        if ($postfix) {
+            return $this->lastCheckPointNumber++;
+        }
+
+        return ++$this->lastCheckPointNumber;
+    }
+
+
+    /**
+     * Get the $pathUI
+     *
+     * @return string
+     */
+    public function getPathUI(): string
+    {
+        return self::$pathUI ?? '';
     }
 
 
@@ -257,10 +350,7 @@ class Debench
      */
     public function getCheckPoints(): array
     {
-        if (!$this->checkPoints) {
-            return [];
-        }
-        return $this->checkPoints;
+        return $this->checkPoints ?? [];
     }
 
 
@@ -268,15 +358,16 @@ class Debench
      * Get the ram usage
      *
      * @param  bool $formatted
+     * @param  bool $roundUnderMB
      * @return int|string
      */
-    public function getRamUsage(bool $formatted = false): int|string
+    public function getRamUsage(bool $formatted = false, bool $roundUnderMB = false): int|string
     {
         // true => memory_real_usage
         $peak = memory_get_usage();
 
         if ($formatted)
-            return Utils::toFormattedBytes($peak);
+            return Utils::toFormattedBytes($peak, $roundUnderMB);
 
         return $peak;
     }
@@ -286,15 +377,16 @@ class Debench
      * Get the real ram usage (peak)
      *
      * @param  bool $formatted
+     * @param  bool $roundUnderMB
      * @return int|string
      */
-    public function getRamUsagePeak(bool $formatted = false): int|string
+    public function getRamUsagePeak(bool $formatted = false, bool $roundUnderMB = false): int|string
     {
         // true => memory_real_usage
         $peak = memory_get_peak_usage(true);
 
         if ($formatted)
-            return Utils::toFormattedBytes($peak);
+            return Utils::toFormattedBytes($peak, $roundUnderMB);
 
         return $peak;
     }
@@ -307,9 +399,9 @@ class Debench
      */
     public function getExecutionTime(): int
     {
+        return $this->getCurrentTime() - $this->getRequestTime();
         // what about loads before Debench such as composer !?
-        // return $this->getCurrentTime() - $this->getRequestTime();
-        return $this->endPointMS - $this->initPointMS;
+        // return $this->endPointMS - $this->initPointMS;
     }
 
 
@@ -321,6 +413,41 @@ class Debench
     public function getRequestTime(): int
     {
         return intval($_SERVER["REQUEST_TIME_FLOAT"] * 1000);
+    }
+
+
+    /**
+     * Get the script name
+     *
+     * @return string
+     */
+    public function getScriptName(): string
+    {
+        return $_SERVER['SCRIPT_NAME'] ?? 'non';
+    }
+
+
+    /**
+     * Get the $_SERVER['REQUEST_METHOD']
+     *
+     * @return string
+     */
+    public function getRequestMethod(): string
+    {
+        return $_SERVER['REQUEST_METHOD'] ?? 'non';
+    }
+
+
+    /**
+     * Get the http_response_code()
+     *
+     * @return string
+     */
+    public function getResponseCode(): int
+    {
+        $rCode = http_response_code();
+        // 501: Not Implemented
+        return $rCode === false ? 501 : $rCode;
     }
 
 
@@ -361,6 +488,122 @@ class Debench
 
 
     /**
+     * Make the tag
+     * 
+     * @param  string $tag
+     * @param  int $id
+     * @return string
+     */
+    private function makeTag(string $tag, int $id): string
+    {
+        if (empty($tag)) {
+            $tag = 'point ' . $id;
+        }
+
+        // tags(keys) should to be unique
+        return $tag .= '#' . $id;
+    }
+
+
+    /**
+     * Validate the tag
+     * 
+     * @param  string $tag
+     * @return bool
+     */
+    private function checkTag(string $tag): bool
+    {
+        $regex = "/^([a-zA-Z0-9_ -]+)#[0-9]+$/";
+
+        if (preg_match($regex, $tag)) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Add a message as an info
+     * 
+     * @param  string $message
+     * @return void
+     */
+    public static function info(string $message = ''): void
+    {
+        if (!isset(self::$messages)) {
+            self::$messages = [];
+        }
+
+        $lastBT = Utils::getBacktrace()[0];
+        $path = $lastBT['file'];
+        $line = $lastBT['line'];
+
+        $messageObject = new Message($message, $path, $line);
+
+        self::$messages[] = $messageObject;
+    }
+
+
+    /**
+     * Get the exceptions array
+     * 
+     * @return array
+     */
+    public static function messages(): array
+    {
+        return self::$messages ?? [];
+    }
+
+
+    /**
+     * Add an exception to exceptions array
+     * 
+     * @param  Throwable $exception
+     * @return void
+     */
+    public function addException(\Throwable $exception): void
+    {
+        if (!isset($this->exceptions)) {
+            $this->exceptions = [];
+        }
+
+        $this->exceptions[] = $exception;
+    }
+
+
+    /**
+     * Get the exceptions array
+     * 
+     * @return array
+     */
+    private function getExceptions(): array
+    {
+        return $this->exceptions ?? [];
+    }
+
+
+    /**
+     * Throw errors as exceptions
+     * 
+     * @param int $level
+     * @param string $message
+     * @param string $file
+     * @param int $line
+     * @param array $context
+     * @return void
+     */
+    public function addAsException(int $level, string $message, string $file = '', int $line = 0, array $context = []): void
+    {
+        if (!isset($this->exceptions)) {
+            $this->exceptions = [];
+        }
+
+        $this->exceptions[]  = new \ErrorException($message, 0, $level, $file, $line);
+    }
+
+
+    /**
      * Make formatted output
      *
      * @return string
@@ -370,26 +613,29 @@ class Debench
         $eTime = $this->getExecutionTime();
 
         // ------- the minimal widget
-        if ($this->minimal) {
-            return Template::render($this->path . '/' . $this->ui . '/debench/widget.minimal.htm', [
-                'base' => $this->ui,
-                'ramUsage' => $this->getRamUsage(true),
-                'includedFilesCount' => $this->getLoadedFilesCount(),
+        if ($this->isMinimalOnly()) {
+            return Template::render(self::$pathUI . '/widget.minimal.htm', [
+                'base' => self::$ui,
+                'ramUsage' => $this->getRamUsage(true, true),
+                'requestInfo' => $this->getRequestMethod() . ' ' . $this->getResponseCode(),
                 'fullExecTime' => $eTime
             ]);
         }
 
+
         // ------- infoLog
-        $infoLog = Template::render($this->path . '/' . $this->ui . '/debench/widget.log.info.htm', [
+        $infoLog = Template::render(self::$pathUI . '/widget.log.info.htm', [
             "phpVersion" => SystemInfo::getPHPVersion(),
-            "opcache" => SystemInfo::getOPCacheStatus() ? 'On' : 'Off',
+            "opcache" => SystemInfo::getOPCacheStatus(),
             "systemAPI" => SystemInfo::getSystemAPI(),
         ]);
 
+
         // ------- timeLog
         $timeLog = '';
-        foreach ($this->checkPoints as $key => $cp) {
-            $timeLog .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.checkpoint.htm', [
+
+        foreach ($this->getCheckPoints() as $key => $cp) {
+            $timeLog .= Template::render(self::$pathUI . '/widget.log.checkpoint.htm', [
                 "name" => $this->getTagName($key),
                 "path" => $cp->getPath(),
                 "fileName" => basename($cp->getPath()),
@@ -400,51 +646,123 @@ class Debench
             ]);
         }
 
-        // ------- logRequest
-        $logRequest = '';
-        foreach ($_REQUEST as $key => $value) {
-            $logRequest .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.request.htm', [
-                "key" => $key,
-                "value" => $value
-            ]);
+
+        // ------- logPost
+        $logPost = $this->makeOutputLoop(self::$pathUI . '/widget.log.request.post.htm', $_POST, false);
+
+
+        // ------- logGet
+        $logGet = $this->makeOutputLoop(self::$pathUI . '/widget.log.request.get.htm', $_GET, false);
+
+
+        // ------- logCookie
+        $logCookie = $this->makeOutputLoop(self::$pathUI . '/widget.log.request.cookie.htm', $_COOKIE, false);
+
+
+        if (empty($logPost . $logGet . $logCookie)) {
+            $logPost = '<b>Nothing</b> Yet!';
         }
 
-        if (!$_REQUEST) {
-            $logRequest = 'No <i>$_REQUEST</i> Yet!';
-        }
 
         // ------- logSession
-        if (PHP_SAPI === 'cli') {
-            $_SESSION = array();
+        $session = isset($_SESSION) ? $_SESSION : null;
+
+        $logSession = $this->makeOutputLoop(self::$pathUI . '/widget.log.request.session.htm', $session);
+
+        if (!isset($session)) {
+            $logSession = '<b>_SESSION</b> is not available!';
         }
 
-        $logSession = '';
-        foreach ($_SESSION as $key => $value) {
-            $logSession .= Template::render($this->path . '/' . $this->ui . '/debench/widget.log.request.htm', [
-                "key" => $key,
-                "value" => $value
+
+        // ------- logMessages
+        $logMessage = '';
+
+        foreach (self::messages() as $message) {
+            $file = basename($message->getPath());
+            $path = str_replace($file, "<b>$file</b>", $message->getPath());
+
+            $logMessage .= Template::render(self::$pathUI . '/widget.log.message.htm', [
+                // "code" => $exception->getCode(),
+                "message" => $message->getMessage(),
+                "path" => $path,
+                "line" => $message->getLineNumber(),
             ]);
         }
 
-        if (!$_SESSION) {
-            $logSession = 'No <i>$_SESSION</i> Yet!';
+        if (empty($logMessage)) {
+            $logMessage = '<b>Nothing</b> Yet!';
         }
 
+
+        // ------- logException
+        $logException = '';
+
+        foreach ($this->getExceptions() as $exception) {
+            $file = basename($exception->getFile());
+            $path = str_replace($file, "<b>$file</b>", $exception->getFile());
+
+            $logException .= Template::render(self::$pathUI . '/widget.log.exception.htm', [
+                // "code" => $exception->getCode(),
+                "message" => $exception->getMessage(),
+                "path" => $path,
+                "line" => $exception->getLine(),
+            ]);
+        }
+
+        if (empty($logException)) {
+            $logException = '<b>Nothing</b> Yet!';
+        }
+
+
         // ------- the main widget
-        return Template::render($this->path . '/' . $this->ui . '/debench/widget.htm', [
-            'base' => $this->ui,
-            'ramUsagePeak' => $this->getRamUsagePeak(true),
-            'ramUsage' => $this->getRamUsage(true),
-            'includedFilesCount' => $this->getLoadedFilesCount(),
+        return Template::render(self::$pathUI . '/widget.htm', [
+            'base' => self::$ui,
+            'ramUsagePeak' => $this->getRamUsagePeak(true, true),
+            'ramUsage' => $this->getRamUsage(true, true),
+            // 'includedFilesCount' => $this->getLoadedFilesCount(),
             'preloadTime' => $this->initPointMS - $this->getRequestTime(),
-            'request' => count($_REQUEST ?? []),
-            'requestLog' => $logRequest,
+            'request' => count($_POST) + count($_GET) + count($_COOKIE),
+            'logPost' => $logPost,
+            'logGet' => $logGet,
+            'logCookie' => $logCookie,
             'session' => count($_SESSION ?? []),
             'sessionLog' => $logSession,
             'infoLog' => $infoLog,
             'timeLog' => $timeLog,
+            'logMessage' => $logMessage,
+            'message' => count(self::messages()),
+            'logException' => $logException,
+            'exception' => count($this->getExceptions()),
+            'requestInfo' => $this->getRequestMethod() . ' ' . $this->getResponseCode(),
             'fullExecTime' => $eTime
         ]);
+    }
+
+
+    /**
+     * Make formatted output in loop, $key => $value
+     *
+     * @return string
+     */
+    private function makeOutputLoop(string $theme, array|null $data, string|false $message = ''): string
+    {
+        if (empty($data)) {
+            if ($message === false) {
+                return '';
+            }
+            return empty($message) || !is_string($message) ? '<b>Nothing</b> Yet!' : $message;
+        }
+
+        $output = '';
+
+        foreach ($data as $key => $value) {
+            $output .= Template::render($theme, [
+                "key" => $key,
+                "value" => $value
+            ]);
+        }
+
+        return $output;
     }
 
 
@@ -467,13 +785,10 @@ class Debench
      * @param  string $ui
      * @return Debench
      */
-    public static function getInstance($enable = true, string $ui = 'theme'): Debench
+    public static function getInstance(bool $enable = null, string $ui = null): Debench
     {
         if (self::$instance === null) {
-            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
-            $path = dirname(($backtrace[0])['file']);
-
-            self::$instance = new self($enable, $ui, $path);
+            self::$instance = new self($enable, $ui);
         }
 
         return self::$instance;

@@ -15,10 +15,32 @@ namespace DEBENCH;
 class Utils
 {
     /**
+     * Get the backtrace, make sure to call it directly
+     *
+     * @return array
+     */
+    public static function getBacktrace(): array
+    {
+        $debugBTOut = [];
+
+        $debugBT = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 0);
+
+        foreach ($debugBT as $btItem) {
+            if (strrpos($btItem['file'], __DIR__) === false) {
+                $debugBTOut[] = $btItem;
+            }
+        }
+
+        return $debugBTOut;
+    }
+
+
+    /**
      * Copy folder
      *
      * @param  string $from
      * @param  string $to
+     * @param  bool $checkForError
      * @return void
      */
     public static function copyDir(string $from, string $to, bool $checkForError = true): void
@@ -27,25 +49,25 @@ class Utils
             if (!file_exists($from)) {
                 throw new \Exception("File/Dir source '$from` doesn't exists!");
             }
-            $toBack = dirname($to, 1);
-            if (!is_writable($toBack)) {
-                throw new \Exception("Dir dest '$toBack' is not writable!");
-            }
         }
 
         // open the source directory
         $dir = opendir($from);
 
-        mkdir($to);
+        @mkdir($to);
 
         // Loop through the files in source directory
         while ($file = readdir($dir)) {
             if (($file != '.') && ($file != '..')) {
-                if (is_dir($from . DIRECTORY_SEPARATOR . $file)) {
+                $fileFrom = $from . DIRECTORY_SEPARATOR . $file;
+                $fileTo = $to . DIRECTORY_SEPARATOR . $file;
+                if (is_dir($fileFrom)) {
                     // for sub directory 
-                    Utils::copyDir($from . DIRECTORY_SEPARATOR . $file, $to . DIRECTORY_SEPARATOR . $file, false);
+                    Utils::copyDir($fileFrom, $fileTo, false);
                 } else {
-                    copy($from . DIRECTORY_SEPARATOR . $file, $to . DIRECTORY_SEPARATOR . $file);
+                    if (!file_exists($fileTo) || filesize($fileFrom) != filesize($fileTo)) {
+                        copy($fileFrom, $fileTo);
+                    }
                 }
             }
         }
@@ -54,22 +76,49 @@ class Utils
     }
 
 
+
+    /**
+     * Delete a folder recursively
+     *
+     * @param  string $dir
+     * @return void
+     */
+    public static function deleteDir(string $dir): void
+    {
+        $glob = glob($dir);
+        foreach ($glob as $file) {
+            if (is_dir($file)) {
+                self::deleteDir("$file/*");
+                rmdir($file);
+            } else {
+                unlink($file);
+            }
+        }
+    }
+
+
     /**
      * Format bytes with B, KB, MB, 'GB', 'TB' etc.
      *
      * @param  int $size
+     * @param  bool $roundUnderMB
      * @return string
      */
-    public static function toFormattedBytes(int $size = 0): string
+    public static function toFormattedBytes(int $size = 0, bool $roundUnderMB = false): string
     {
         if ($size == 0) {
             return '0 B';
         }
 
+        $suffixes = ['B', 'KB', 'MB', 'GB', 'TB'];
         $base = log($size, 1024);
-        $suffixes = array('B', 'KB', 'MB', 'GB', 'TB');
 
-        return round(pow(1024, $base - floor($base))) . ' ' . $suffixes[floor($base)];
+        $round = 1;
+        if ($roundUnderMB && floor($base) < array_search('MB', $suffixes)) {
+            $round = 0;
+        }
+
+        return round(pow(1024, $base - floor($base)), $round) . ' ' . $suffixes[floor($base)];
     }
 
 
@@ -80,15 +129,11 @@ class Utils
      */
     public static function isInTestMode(): bool
     {
-        if (PHP_SAPI != 'cli') {
-            return false;
-        }
-
-        if (defined('PHPUNIT_COMPOSER_INSTALL') && defined('__PHPUNIT_PHAR__')) {
+        if (SystemInfo::isCLI() && defined('PHPUNIT_COMPOSER_INSTALL') && defined('__PHPUNIT_PHAR__')) {
             return true;
         }
 
-        if (strpos($_SERVER['argv'][0], 'phpunit') !== false) {
+        if (SystemInfo::isCLI() && strpos($_SERVER['argv'][0], 'phpunit') !== false) {
             return true;
         }
 

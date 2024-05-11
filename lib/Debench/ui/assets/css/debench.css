@@ -1,54 +1,71 @@
 debench {
-  margin:0 0 -1px 0;
-  position: fixed!important;
-  z-index: 1000000!important;
-  bottom: 0px!important;
-  left: 0px!important;
+  margin: 0 0 -1px 0;
+  position: fixed !important;
+  z-index: 1000000 !important;
+  bottom: 0px !important;
+  left: 0px !important;
 }
 debench * {
-  font-family: tahoma!important;
-  direction: ltr!important;
-  text-align: left!important;
-  font-size: 13px!important;
+  font-family: tahoma !important;
+  direction: ltr !important;
+  text-align: left !important;
+  font-size: 13px !important;
 }
 debench ul.debench-main-block {
-  margin: 0px!important;
-  padding: 0!important;
-  list-style-type: none!important;
+  margin: 0px !important;
+  padding: 0 !important;
+  list-style-type: none !important;
 }
 debench ul.debench-main-block > li:not(:last-child) {
-  padding:0px 0 0 0;
-  margin:0 0 -1px 0;
-  line-height: 0%!important;
+  padding: 0px 0 0 0;
+  margin: 0 0 -1px 0;
+  line-height: 0% !important;
 }
 debench ul.debench-main-block > li:not(:last-child) {
   display: none;
 }
-debench .debench-panel {
-  border: 1px solid #dee2e6!important;
-  border-width: 1px 1px 0 0!important;
-  border-radius: 0 5px 0 0!important;
-  background: #f8f9fa!important;
-  color: #555!important;
+debench .debench-panel {   
+  border: 1px solid #d9e6eb !important;
+  border-width: 1px 1px 0 0 !important;
+  border-radius: 0 3px 0 0 !important;
+  background: #f8f9fa !important;
+  color: #555 !important;
   padding: 5px 7px;
-  line-height: 150%!important;
+  line-height: 150% !important;
   display: inline-block;
-  overflow: hidden;
+  max-height: 200px;
+  overflow: auto;
+}
+debench .debench-panel table {  
+  border-collapse: separate!important;
+  border-spacing: 1px!important;
+}
+debench .debench-panel td { 
+  padding: 0 1px;
+  color: #555 !important;
+  line-height: 150% !important;
 }
 debench .debench-panel td {
-  color: #555!important;
-  line-height: 150%!important;
+  padding:1px 10px 1px 3px !important;
+}
+debench .debench-panel tr:nth-child(odd) td {
+  background: #e2ecf0!important;
+}
+debench .debench-panel tr:nth-child(even) td { 
+  /* background: #eeeff0!important; */
 }
 debench .debench-panel span {
-  font-style:italic!important;
-  text-decoration:none!important;
+  font-style: italic !important;
+  text-decoration: none !important;
 }
-debench .debench-panel span[title], debench .debench-panel td[title] {
-  text-decoration: underline!important;
+debench .debench-panel span[title],
+debench .debench-panel td[title] {
+  text-decoration: underline !important;
 }
-debench .debench-panel-title span, debench .debench-panel-title td {
-  font-style:italic!important;
-  text-decoration: underline!important;
+debench .debench-panel-title span,
+debench .debench-panel-title td {
+  font-style: italic !important;
+  text-decoration: underline !important;
 }
 debench .debench-main-panel-minimal {
   display: block;
@@ -56,26 +73,50 @@ debench .debench-main-panel-minimal {
 debench .debench-main-panel {
   display: none;
 }
-debench .debench-main-panel, debench .debench-main-panel-minimal {
+debench .debench-main-panel,
+debench .debench-main-panel-minimal {
   padding: 0px;
 }
-debench .debench-main-panel ul, debench .debench-main-panel-minimal ul {
-  float:left;
+debench .debench-main-panel ul,
+debench .debench-main-panel-minimal ul {
+  float: left;
   padding: 0;
-  margin: 0px!important;
-  list-style-type: none!important;
-  line-height: 0%!important;
+  margin: 0px !important;
+  list-style-type: none !important;
+  line-height: 0% !important;
 }
-debench .debench-main-panel ul li, debench .debench-main-panel-minimal ul li {
+debench .debench-main-panel ul li,
+debench .debench-main-panel-minimal ul li {
   float: left;
   padding: 5px 7px;
-  line-height: 150%!important;
+  line-height: 150% !important; 
 }
-debench .debench-main-panel ul li[data-target]:hover, debench .debench-main-panel-minimal ul li[data-target]:hover {
-  background: #efefef;
+debench .debench-main-panel ul li.active,
+debench .debench-main-panel ul li[data-target]:hover,
+debench .debench-main-panel-minimal ul li[data-target]:hover {
+  background: #e2ecf0;   
   cursor: pointer;
-  user-select: none;
+  user-select: none; 
+}
+debench .debench-main-panel ul li[data-target="debench-info-block"] {
+  background-color: #77aabb;
+  border-radius: 1px;
+}
+debench .debench-main-panel ul li[data-target="debench-info-block"]:hover {
+  background-color: #77aabb;
 }
 debench b {
   color: #333;
+}
+debench .debench-panel::-webkit-scrollbar {
+  width: 6px;
+}
+debench .debench-panel::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+debench .debench-panel::-webkit-scrollbar-thumb {
+  background: #555; 
+}
+debench .debench-panel::-webkit-scrollbar-thumb:hover {
+  background: #555; 
 }

@@ -5,20 +5,24 @@
     <li class="debench-info-block">
       <div class="debench-panel">
         <table>
-        {{@infoLog}}
+          {{@infoLog}}
         </table>
       </div>
     </li>
-    <li class="debench-checkpoints-block">
+    <li class="debench-checkpoint-block">
       <div class="debench-panel">
         <table>
-        {{@timeLog}}
+          {{@timeLog}}
         </table>
       </div>
     </li>
     <li class="debench-request-block">
       <div class="debench-panel">
-        {{@requestLog}}
+        <table>
+          {{@logPost}}
+          {{@logGet}}
+          {{@logCookie}}
+        </table>
       </div>
     </li>
     <li class="debench-session-block">
@@ -26,38 +30,53 @@
         {{@sessionLog}}
       </div>
     </li>
+    <li class="debench-exception-block">
+      <div class="debench-panel">
+        <table>
+          {{@logException}}
+        </table>
+      </div>
+    </li>
+    <li class="debench-message-block">
+      <div class="debench-panel">
+        <table>
+          {{@logMessage}}
+        </table>
+      </div>
+    </li>
     <li>
       <div class="debench-panel debench-main-panel-minimal">
         <ul>
           <li data-target="debench-panel-toggle">
-            <b>{{@fullExecTime}} ms</b> / 
-            <b>{{@ramUsage}}</b> / 
-            <b>{{@includedFilesCount}}</b>
+            <b>{{@fullExecTime}} ms</b> /
+            <b>{{@ramUsage}}</b> |
+            {{@requestInfo}}
           </li>
         </ul>
       </div>
       <div class="debench-panel debench-main-panel">
         <ul>
           <li data-target="debench-info-block">
-            <image width="12px" height="12px" src="{{@base}}/debench/assets/img/info.png" style="margin-bottom:-1px;"></image>
+            <image width="12px" height="12px" src="{{@base}}/debench/assets/img/info.png"></image>
           </li>
-        </ul>
-        <ul>
-          <li data-target="debench-checkpoints-block">
-            Time: <b>{{@fullExecTime}} ms</b> (<span title="Preload Time: {{@preloadTime}} ms">{{@preloadTime}}
-              ms</span>),
-            Memory: <b>{{@ramUsage}}</b> (<span title="Ram Usage Peak: {{@ramUsagePeak}} ms">{{@ramUsagePeak}}</span>),
-            Included: <b>{{@includedFilesCount}}</b> files
+          <li data-target="debench-checkpoint-block">
+            Time: <b>{{@fullExecTime}} ms</b>,
+            Memory: <b>{{@ramUsage}}</b> (<span title="Ram Usage Peak: {{@ramUsagePeak}} ms">{{@ramUsagePeak}}</span>)
           </li>
-        </ul>
-        <ul>
+          <li data-target="debench-exception-block">
+            Errors: <b>{{@exception}}</b>
+          </li>
+          <li data-target="debench-message-block">
+            Messages: <b>{{@message}}</b>
+          </li>
           <li data-target="debench-request-block">
             Request: <b>{{@request}}</b>
           </li>
-        </ul>
-        <ul>
           <li data-target="debench-session-block">
             Session: <b>{{@session}}</b>
+          </li>
+          <li>
+            <i>{{@requestInfo}}</i>
           </li>
           <li class="debench-toggle" data-target="debench-panel-toggle">
             <b>&#8651</b>
@@ -69,7 +88,7 @@
 
   <script>
     var debenchBase = '{{@base}}';
-    var debenchPanelMain = '{{@debench-main-panel}}';
+    var debenchPanelMain = '';
     var debenchPanelLast = '';
 
     if (typeof jQuery != 'undefined') {
@@ -77,5 +96,6 @@
     }
   </script>
   <script src="{{@base}}/debench/assets/js/jquery.min.js"></script>
+  <script src="{{@base}}/debench/assets/js/jquery.cookie-1.4.1.min.js"></script>
   <script src="{{@base}}/debench/assets/js/debench.js"></script>
 </debench>

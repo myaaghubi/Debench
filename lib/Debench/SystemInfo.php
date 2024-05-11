@@ -32,7 +32,18 @@ class SystemInfo
      */
     public static function getSystemAPI(): string
     {
-        return php_sapi_name();
+        return PHP_SAPI;
+    }
+
+
+    /**
+     * Is in the cli mode
+     * 
+     * @return bool
+     */
+    public static function isCLI(): bool
+    {
+        return strtolower(self::getSystemAPI()) == 'cli';
     }
 
 
@@ -41,8 +52,23 @@ class SystemInfo
      * 
      * @return string
      */
-    public static function getOPCacheStatus(): bool
+    public static function getOPCacheStatus(): string
     {
-        return function_exists('opcache_get_status') && is_array(opcache_get_status()) && opcache_get_status()['opcache_enabled'] == true;
+        if (
+            !function_exists('opcache_get_status') &&
+            (!extension_loaded("opcache") && !extension_loaded("Zend OPcache"))
+        ) {
+            return 'Off (Not Loaded)';
+        }
+
+        if (
+            is_array(opcache_get_status()) &&
+            isset(opcache_get_status()['opcache_enabled']) &&
+            opcache_get_status()['opcache_enabled'] == 1
+        ) {
+            return 'On';
+        }
+
+        return 'Off';
     }
 }
