@@ -5,3 +5,4 @@ composer.lock
 theme
 index.php
 coverage.xml
+clover.xml
