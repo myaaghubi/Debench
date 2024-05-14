@@ -18,26 +18,30 @@ namespace DEBENCH;
 
 require __DIR__ . '/vendor/autoload.php';
 
+Debench::info('let\'s have the debench');
+
 // call it from your index.php after autoload 
 // then check the webpage with your browser
 // $debench = new Debench(true, 'theme');
 Debench::getInstance(true, 'theme');
 
+Debench::info('let\'s use some memory');
 $st = str_repeat("Debench!", 10000);
 
+Debench::info('step one');
 // step one
 // $debench->newPoint("one");
 Debench::point('one');
 
 $st .= str_repeat("Debench!", 10000);
 
-// step two
 Debench::info('step two');
+// step two
 Debench::point("two");
 ```
 For `minimal` mode:
 ```php
-// it is safe and secure to use for production mode
+// it is safe and secure to use
 // $debench->setMinimalOnly(true);
 Debench::minimalOnly(true);
 ```
