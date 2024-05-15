@@ -18,8 +18,8 @@ class MessageLevelTest extends TestCase
         ], MessageLevel::cases());
     }
 
-    public function testLower(): void
+    public function testName(): void
     {
-        $this->assertIsString(MessageLevel::INFO->color());
+        $this->assertIsString(MessageLevel::INFO->name());
     }
 }

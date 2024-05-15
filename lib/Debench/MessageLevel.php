@@ -19,13 +19,13 @@ enum MessageLevel
     case ERROR;
     case DUMP;
 
-    public function color(): string
+    public function name(): string
     {
-        return match($this) {
-            MessageLevel::INFO => '#aabbcc', // nothing
-            MessageLevel::WARNING => '#fff000', // nothing
-            MessageLevel::ERROR => '#ff0000', // nothing
-            MessageLevel::DUMP => '#aabbcc', // nothing
+        return match ($this) {
+            MessageLevel::INFO => 'Info',
+            MessageLevel::WARNING => 'Warning',
+            MessageLevel::ERROR => 'Error',
+            MessageLevel::DUMP => 'Dump',
         };
     }
 }
