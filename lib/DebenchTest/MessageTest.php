@@ -14,11 +14,13 @@ class MessageTest extends TestCase
     {
         $this->params = [
             'message' => 'teeeest',
+            'level' => MessageLevel::INFO,
             'path' => 'test\path\not\real',
             'lineNumber' => 12
         ];
         $this->message = new Message(
             $this->params['message'],
+            $this->params['level'],
             $this->params['path'],
             $this->params['lineNumber']
         );
@@ -31,8 +33,15 @@ class MessageTest extends TestCase
     public function testConstruct(): void
     {
         $this->assertEquals($this->params['message'], $this->message->getMessage());
+        $this->assertEquals($this->params['level'], $this->message->getLevel());
         $this->assertEquals($this->params['path'], $this->message->getPath());
         $this->assertEquals($this->params['lineNumber'], $this->message->getLineNumber());
+    }
+
+    public function testSetLevel(): void
+    {
+        $this->message->setLevel(MessageLevel::ERROR);
+        $this->assertEquals(MessageLevel::ERROR, $this->message->getLevel());
     }
 
     public function testSetMemory(): void
