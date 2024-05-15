@@ -758,6 +758,7 @@ class Debench
 
             $logMessage .= Template::render(self::$pathUI . '/widget.log.message.htm', [
                 // "code" => $exception->getCode(),
+                "level" => strtoupper($message->getLevel()->name()),
                 "message" => $message->getMessage(),
                 "path" => $path,
                 "line" => $message->getLineNumber(),
@@ -792,6 +793,7 @@ class Debench
             'ramUsage' => $this->getRamUsage(true, true),
             // 'includedFilesCount' => $this->getLoadedFilesCount(),
             'preloadTime' => $this->initPointMS - $this->getRequestTime(),
+            'pointsCount' => count($this->getCheckPoints()),
             'request' => count($_POST) + count($_GET) + count($_COOKIE),
             'logPost' => $logPost,
             'logGet' => $logGet,
