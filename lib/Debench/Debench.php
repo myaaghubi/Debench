@@ -524,22 +524,82 @@ class Debench
 
 
     /**
-     * Add a message as an info
+     * Add an info
      * 
      * @param  string $message
      * @return void
      */
-    public static function info(string $message = ''): void
+    public static function info(string $message): void
     {
-        if (!isset(self::$messages)) {
-            self::$messages = [];
+        self::addMessage($message, MessageLevel::INFO);
+    }
+
+
+    /**
+     * Add a warning
+     * 
+     * @param  string $message
+     * @return void
+     */
+    public static function warning(string $message): void
+    {
+        self::addMessage($message, MessageLevel::WARNING);
+    }
+
+
+    /**
+     * Add an error
+     * 
+     * @param  string $message
+     * @return void
+     */
+    public static function error(string $message): void
+    {
+        self::addMessage($message, MessageLevel::ERROR);
+    }
+
+
+    /**
+     * Dump var/s
+     * 
+     * @param  mixed $var/s
+     * @return void
+     */
+    public static function dump(...$args): void
+    {
+        $messages = [];
+
+        foreach (func_get_args() as $var) {
+            ob_start();
+            var_dump($var);
+            $dumped = ob_get_clean();
+            $messages[] = preg_replace("/\n*<small>.*?<\/small>/", "", $dumped, 1);
         }
 
+        $messageString = implode('', $messages);
+
+        self::addMessage($messageString, MessageLevel::DUMP);
+    }
+
+
+    /**
+     * Add a message
+     * 
+     * @param  string $message
+     * @param  MessageLevel $level
+     * @return void
+     */
+    private static function addMessage(string $message, MessageLevel $level): void
+    {
         $lastBT = Utils::getBacktrace()[0];
         $path = $lastBT['file'];
         $line = $lastBT['line'];
 
-        $messageObject = new Message($message, $path, $line);
+        $messageObject = new Message($message, $level, $path, $line);
+
+        if (empty(self::$messages)) {
+            self::$messages = [];
+        }
 
         self::$messages[] = $messageObject;
     }
@@ -553,6 +613,17 @@ class Debench
     public static function messages(): array
     {
         return self::$messages ?? [];
+    }
+
+
+    /**
+     * Clear messages
+     * 
+     * @return void
+     */
+    public static function clearMessages(): void
+    {
+        self::$messages = [];
     }
 
 
@@ -675,7 +746,11 @@ class Debench
 
 
         // ------- logMessages
-        $logMessage = '';
+        $logMessage = '<b>Nothing</b> Yet!';
+
+        if (!empty(self::messages())) {
+            $logMessage = '';
+        }
 
         foreach (self::messages() as $message) {
             $file = basename($message->getPath());
@@ -687,10 +762,6 @@ class Debench
                 "path" => $path,
                 "line" => $message->getLineNumber(),
             ]);
-        }
-
-        if (empty($logMessage)) {
-            $logMessage = '<b>Nothing</b> Yet!';
         }
 
 
