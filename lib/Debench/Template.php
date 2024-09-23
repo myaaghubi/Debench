@@ -28,11 +28,12 @@ class Template
         // for ui/assets
         @mkdir($targetPath, 0777, true);
 
-        // for path
-        if (is_dir($targetPath)) {
-            // Copy the templates files from ui dir into your webroot dir if files don't match
-            Utils::copyDir(__DIR__ . '/ui', $targetPath);
+        if (!is_dir($targetPath)) {
+            throw new \Exception("The path '$targetPath` is not created yet! Make sure to have the write permission.");
         }
+
+        // Copy the templates files from ui dir into your webroot dir if files don't match
+        Utils::copyDir(__DIR__ . '/ui', $targetPath);
     }
 
 

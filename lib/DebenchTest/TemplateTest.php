@@ -8,9 +8,9 @@ use PHPUnit\Framework\TestCase;
 
 class TemplateTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-    }
+    public static $is_dir = false;
+
+    protected function tearDown(): void {}
 
     public function testMakeUI(): void
     {
@@ -39,6 +39,14 @@ class TemplateTest extends TestCase
         );
 
         Utils::deleteDir($destDir);
+        self::$is_dir = false;
+        Template::makeUI($destDir);
+
+        Utils::deleteDir($destDir);
+        self::$is_dir = true;
+        Template::makeUI($destDir);
+
+        Utils::deleteDir($destDir);
     }
 
     public function testRender(): void
@@ -53,8 +61,14 @@ class TemplateTest extends TestCase
         $this->assertStringContainsString($key[1], $html);
 
         $this->assertMatchesRegularExpression("/{{@$key[0]}}/", file_get_contents($pathHtm));
-        
+
         $this->expectException(\Exception::class);
         $html = Template::render('this\path\doesnt\exists', []);
     }
+}
+
+// for mocking
+function is_dir()
+{
+    return TemplateTest::$is_dir;
 }
