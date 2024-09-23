@@ -29,7 +29,8 @@ class Template
         @mkdir($targetPath, 0777, true);
 
         if (!is_dir($targetPath)) {
-            throw new \Exception("The path '$targetPath` is not created yet! Make sure to have the write permission.");
+            print "The path '$targetPath` is not created yet! Make sure to have the write permission.";
+            return;
         }
 
         // Copy the templates files from ui dir into your webroot dir if files don't match

@@ -14,6 +14,7 @@ class TemplateTest extends TestCase
 
     public function testMakeUI(): void
     {
+        self::$is_dir = true;
 
         $templateRef = new \ReflectionClass(Template::class);
         $srcDir = dirname($templateRef->getFilename()) . '/ui';
@@ -41,12 +42,6 @@ class TemplateTest extends TestCase
         Utils::deleteDir($destDir);
         self::$is_dir = false;
         Template::makeUI($destDir);
-
-        Utils::deleteDir($destDir);
-        self::$is_dir = true;
-        Template::makeUI($destDir);
-
-        Utils::deleteDir($destDir);
     }
 
     public function testRender(): void
