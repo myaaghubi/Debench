@@ -30,7 +30,7 @@ class Template
 
         if (!is_dir($targetPath)) {
             print "The path '$targetPath` is not created yet! Make sure to have the write permission.";
-            return;
+            // return;
         }
 
         // Copy the templates files from ui dir into your webroot dir if files don't match
