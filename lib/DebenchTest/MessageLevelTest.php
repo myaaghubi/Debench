@@ -21,5 +21,8 @@ class MessageLevelTest extends TestCase
     public function testName(): void
     {
         $this->assertIsString(MessageLevel::INFO->name());
+        $this->assertIsString(MessageLevel::WARNING->name());
+        $this->assertIsString(MessageLevel::ERROR->name());
+        $this->assertIsString(MessageLevel::DUMP->name());
     }
 }

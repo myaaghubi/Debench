@@ -28,11 +28,6 @@ class Template
         // for ui/assets
         @mkdir($targetPath, 0777, true);
 
-        if (!is_dir($targetPath)) {
-            print "The path '$targetPath` is not created yet! Make sure to have the write permission.";
-            // return;
-        }
-
         // Copy the templates files from ui dir into your webroot dir if files don't match
         Utils::copyDir(__DIR__ . '/ui', $targetPath);
     }
@@ -54,7 +49,6 @@ class Template
         if (empty(self::$paths[$themePath])) {
             if (!file_exists($themePath)) {
                 throw new \Exception("File '$themePath` doesn't exists!");
-                return '';
             }
             self::$paths[$themePath] = file_get_contents($themePath);
         }

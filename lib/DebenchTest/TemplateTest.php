@@ -8,18 +8,14 @@ use PHPUnit\Framework\TestCase;
 
 class TemplateTest extends TestCase
 {
-    public static $is_dir = false;
-
     protected function tearDown(): void {}
 
     public function testMakeUI(): void
     {
-        self::$is_dir = true;
-
         $templateRef = new \ReflectionClass(Template::class);
         $srcDir = dirname($templateRef->getFilename()) . '/ui';
 
-        $destDir = __DIR__ . '/copydest';
+        $destDir = dirname(__FILE__, 3) . '/copydest';
 
         Utils::deleteDir($destDir);
         $this->assertFileDoesNotExist($destDir, "This dir should not be exists.");
@@ -40,7 +36,6 @@ class TemplateTest extends TestCase
         );
 
         Utils::deleteDir($destDir);
-        self::$is_dir = false;
         Template::makeUI($destDir);
     }
 
@@ -60,10 +55,4 @@ class TemplateTest extends TestCase
         $this->expectException(\Exception::class);
         $html = Template::render('this\path\doesnt\exists', []);
     }
-}
-
-// for mocking
-function is_dir()
-{
-    return TemplateTest::$is_dir;
 }
