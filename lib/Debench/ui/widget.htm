@@ -63,22 +63,32 @@
           </li>
           <li data-target="debench-checkpoint-block">
             <b>{{@fullExecTime}} ms</b> / 
-            <b>{{@ramUsage}}</b>
-            <div class="debench-circle">
-              <span title="Ram Usage Peak: {{@ramUsagePeak}}">{{@pointsCount}}</span>
-            </div>
+            <b>{{@ramUsage}}</b> / 
+            <b>{{@pointsCount}}</b>
           </li>
           <li data-target="debench-exception-block">
-            Errors: <b>{{@exception}}</b>
+            Errors
+            <div class="debench-badge debench-counter" data-badge="debench-badge-red">
+              <span>{{@exception}}</span>
+            </div>
           </li>
           <li data-target="debench-message-block">
-            Messages: <b>{{@message}}</b>
+            Messages
+            <div class="debench-badge debench-counter" data-badge="debench-badge-blue">
+              <span>{{@message}}</span>
+            </div>
           </li>
           <li data-target="debench-request-block">
-            Request: <b>{{@request}}</b>
+            Request
+            <div class="debench-badge debench-counter" data-badge="debench-badge-blue">
+              <span>{{@request}}</span>
+            </div>
           </li>
           <li data-target="debench-session-block">
-            Session: <b>{{@session}}</b>
+            Session
+            <div class="debench-badge debench-counter" data-badge="debench-badge-blue">
+              <span>{{@session}}</span>
+            </div>
           </li>
           <li>
             <i>{{@requestInfo}}</i>
