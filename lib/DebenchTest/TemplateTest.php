@@ -37,6 +37,7 @@ class TemplateTest extends TestCase
 
         Utils::deleteDir($destDir);
         Template::makeUI($destDir);
+        Utils::deleteDir($destDir);
     }
 
     public function testRender(): void
