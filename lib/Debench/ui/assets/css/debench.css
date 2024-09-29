@@ -105,17 +105,20 @@ debench .debench-main-panel ul li[data-target="debench-info-block"] {
 debench .debench-main-panel ul li[data-target="debench-info-block"]:hover {
   background-color: #77aabb;
 }
+debench .debench-main-panel ul:last-child {
+  float: right !important;
+}
 debench .debench-message-INFO td {
-  color: #77aabb!important;
+  color: #77aabb !important;
 }
 debench .debench-message-WARNING td {
-  color: #bba977!important;
+  color: #bba977 !important;
 }
 debench .debench-message-ERROR td {
-  color: #bb7777!important;
+  color: #bb7777 !important;
 }
 debench .debench-message-DUMP td {
-  color: #4f656b!important;
+  color: #4f656b !important;
 }
 debench b {
   color: #333;
@@ -133,7 +136,7 @@ debench .debench-panel::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
 debench .debench-badge {
-  height: 100% !important;  
+  height: 100% !important;
   min-width: 19px !important;
   padding: 0 4px !important;
   text-align: center !important;
@@ -141,7 +144,7 @@ debench .debench-badge {
   display: inline-block !important;
   background-color: #999999 !important;
   color: white !important;
-  font-weight:bold !important;
+  font-weight: bold !important;
 }
 debench .debench-badge-blue {
   background-color: #77aabb !important;
@@ -150,7 +153,7 @@ debench .debench-badge-red {
   background-color: #bb7777 !important;
 }
 debench .debench-circle span[title] {
-    font-size: 11px !important;
-    font-weight: bold !important;
-    text-decoration: none !important;
+  font-size: 11px !important;
+  font-weight: bold !important;
+  text-decoration: none !important;
 }
