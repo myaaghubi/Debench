@@ -43,16 +43,14 @@ class Utils
      * @param  bool $checkForError
      * @return void
      */
-    public static function copyDir(string $from, string $to, bool $checkForError = true): void
+    public static function copyDir(string $from, string $to): void
     {
-        if ($checkForError) {
-            if (!file_exists($from)) {
-                throw new \Exception("File/Dir source '$from` doesn't exists!");
-            }
-        }
-
         // open the source directory
         $dir = opendir($from);
+
+        if ($dir===false) {
+            return;
+        }
 
         @mkdir($to);
 
@@ -63,7 +61,7 @@ class Utils
                 $fileTo = $to . DIRECTORY_SEPARATOR . $file;
                 if (is_dir($fileFrom)) {
                     // for sub directory 
-                    Utils::copyDir($fileFrom, $fileTo, false);
+                    Utils::copyDir($fileFrom, $fileTo);
                 } else {
                     if (!file_exists($fileTo) || filesize($fileFrom) != filesize($fileTo)) {
                         copy($fileFrom, $fileTo);

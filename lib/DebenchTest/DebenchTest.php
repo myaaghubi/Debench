@@ -229,12 +229,63 @@ class DebenchTest extends TestCase
         $this->assertGreaterThan(5, $this->debench->getLoadedFilesCount());
     }
 
-    public function testMessages(): void
+    public function testMessageInfo(): void
     {
-        $this->assertCount(0, Debench::messages());
-
         Debench::info('oops');
         $this->assertCount(1, Debench::messages());
+
+        $message = Debench::messages()[0];
+        $text = $message->getMessage();
+        $level = $message->getLevel();
+        $this->assertEquals('oops', $text);
+        $this->assertEquals($level, MessageLevel::INFO);
+        
+        Debench::clearMessages();
+    }
+
+    public function testMessageWarning(): void
+    {
+        Debench::warning('oops');
+        $this->assertCount(1, Debench::messages());
+
+        $message = Debench::messages()[0];
+        $text = $message->getMessage();
+        $level = $message->getLevel();
+        $this->assertEquals('oops', $text);
+        $this->assertEquals($level, MessageLevel::WARNING);
+        
+        Debench::clearMessages();
+    }
+
+    public function testMessageError(): void
+    {
+        Debench::clearMessages();
+        Debench::error('oops');
+        $this->assertCount(1, Debench::messages());
+
+        $message = Debench::messages()[0];
+        $text = $message->getMessage();
+        $level = $message->getLevel();
+        $this->assertEquals('oops', $text);
+        $this->assertEquals($level, MessageLevel::ERROR);
+        
+        Debench::clearMessages();
+    }
+
+    public function testMessageDump(): void
+    {
+        Debench::clearMessages();
+        Debench::dump('oops');
+        $this->assertCount(1, Debench::messages());
+
+        $message = Debench::messages()[0];
+        $text = $message->getMessage();
+        $level = $message->getLevel();
+        $this->assertStringContainsString('oops', $text);
+        $this->assertEquals($level, MessageLevel::DUMP);
+        $this->assertStringContainsString('string', $text);
+        
+        Debench::clearMessages();
     }
 
     public function testAddException(): void
@@ -258,6 +309,7 @@ class DebenchTest extends TestCase
         $outputMinimal = self::callMethod($this->debench, 'makeOutput');
         $this->assertStringNotContainsString($outputMinimal, '{{@');
 
+        Debench::info('oops');
         $this->debench->setMinimalOnly(false);
         self::callMethod($this->debench, 'startSession');
         $outputFull = self::callMethod($this->debench, 'makeOutput');
@@ -294,7 +346,7 @@ class DebenchTest extends TestCase
     public function testWakeup(): void
     {
         $serialized = serialize($this->debench);
-        
+
         $this->expectException(\Exception::class);
         $deserialized = unserialize($serialized);
     }

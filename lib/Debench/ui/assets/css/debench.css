@@ -6,7 +6,7 @@ debench {
   left: 0px !important;
 }
 debench * {
-  font-family: tahoma !important;
+  font-family: Tahoma, "PT Sans", Calibri, sans-serif !important;
   direction: ltr !important;
   text-align: left !important;
   font-size: 13px !important;
@@ -24,7 +24,7 @@ debench ul.debench-main-block > li:not(:last-child) {
 debench ul.debench-main-block > li:not(:last-child) {
   display: none;
 }
-debench .debench-panel {   
+debench .debench-panel {
   border: 1px solid #d9e6eb !important;
   border-width: 1px 1px 0 0 !important;
   border-radius: 0 3px 0 0 !important;
@@ -36,22 +36,22 @@ debench .debench-panel {
   max-height: 200px;
   overflow: auto;
 }
-debench .debench-panel table {  
-  border-collapse: separate!important;
-  border-spacing: 1px!important;
+debench .debench-panel table {
+  border-collapse: separate !important;
+  border-spacing: 1px !important;
 }
-debench .debench-panel td { 
+debench .debench-panel td {
   padding: 0 1px;
   color: #555 !important;
   line-height: 150% !important;
 }
 debench .debench-panel td {
-  padding:1px 10px 1px 3px !important;
+  padding: 1px 10px 1px 3px !important;
 }
 debench .debench-panel tr:nth-child(odd) td {
-  background: #e2ecf0!important;
+  background: #e2ecf0 !important;
 }
-debench .debench-panel tr:nth-child(even) td { 
+debench .debench-panel tr:nth-child(even) td {
   /* background: #eeeff0!important; */
 }
 debench .debench-panel span {
@@ -89,14 +89,14 @@ debench .debench-main-panel ul li,
 debench .debench-main-panel-minimal ul li {
   float: left;
   padding: 5px 7px;
-  line-height: 150% !important; 
+  line-height: 150% !important;
 }
 debench .debench-main-panel ul li.active,
 debench .debench-main-panel ul li[data-target]:hover,
 debench .debench-main-panel-minimal ul li[data-target]:hover {
-  background: #e2ecf0;   
+  background: #e2ecf0;
   cursor: pointer;
-  user-select: none; 
+  user-select: none;
 }
 debench .debench-main-panel ul li[data-target="debench-info-block"] {
   background-color: #77aabb;
@@ -105,6 +105,21 @@ debench .debench-main-panel ul li[data-target="debench-info-block"] {
 debench .debench-main-panel ul li[data-target="debench-info-block"]:hover {
   background-color: #77aabb;
 }
+debench .debench-main-panel ul:last-child {
+  float: right !important;
+}
+debench .debench-message-INFO td {
+  color: #77aabb !important;
+}
+debench .debench-message-WARNING td {
+  color: #bba977 !important;
+}
+debench .debench-message-ERROR td {
+  color: #bb7777 !important;
+}
+debench .debench-message-DUMP td {
+  color: #4f656b !important;
+}
 debench b {
   color: #333;
 }
@@ -112,11 +127,33 @@ debench .debench-panel::-webkit-scrollbar {
   width: 6px;
 }
 debench .debench-panel::-webkit-scrollbar-track {
-  background: #f1f1f1; 
+  background: #f1f1f1;
 }
 debench .debench-panel::-webkit-scrollbar-thumb {
-  background: #555; 
+  background: #555;
 }
 debench .debench-panel::-webkit-scrollbar-thumb:hover {
-  background: #555; 
+  background: #555;
+}
+debench .debench-badge {
+  height: 100% !important;
+  min-width: 19px !important;
+  padding: 0 4px !important;
+  text-align: center !important;
+  border-radius: 12px !important;
+  display: inline-block !important;
+  background-color: #999999 !important;
+  color: white !important;
+  font-weight: bold !important;
+}
+debench .debench-badge-blue {
+  background-color: #77aabb !important;
+}
+debench .debench-badge-red {
+  background-color: #bb7777 !important;
+}
+debench .debench-circle span[title] {
+  font-size: 11px !important;
+  font-weight: bold !important;
+  text-decoration: none !important;
 }

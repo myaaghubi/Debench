@@ -27,7 +27,9 @@
     </li>
     <li class="debench-session-block">
       <div class="debench-panel">
-        {{@sessionLog}}
+        <table>
+          {{@sessionLog}}
+        </table>
       </div>
     </li>
     <li class="debench-exception-block">
@@ -49,7 +51,7 @@
         <ul>
           <li data-target="debench-panel-toggle">
             <b>{{@fullExecTime}} ms</b> /
-            <b>{{@ramUsage}}</b> |
+            <b>{{@ramUsagePeak}}</b> |
             {{@requestInfo}}
           </li>
         </ul>
@@ -60,20 +62,35 @@
             <image width="12px" height="12px" src="{{@base}}/debench/assets/img/info.png"></image>
           </li>
           <li data-target="debench-checkpoint-block">
-            Time: <b>{{@fullExecTime}} ms</b>,
-            Memory: <b>{{@ramUsage}}</b> (<span title="Ram Usage Peak: {{@ramUsagePeak}} ms">{{@ramUsagePeak}}</span>)
+            <b>{{@fullExecTime}} ms</b> / 
+            <b>{{@ramUsagePeak}}</b>
+            <div class="debench-badge debench-counter">
+              <span>{{@pointsCount}}</span>
+            </div>
           </li>
           <li data-target="debench-exception-block">
-            Errors: <b>{{@exception}}</b>
+            Errors
+            <div class="debench-badge debench-counter" data-badge="debench-badge-red">
+              <span>{{@exception}}</span>
+            </div>
           </li>
           <li data-target="debench-message-block">
-            Messages: <b>{{@message}}</b>
+            Messages
+            <div class="debench-badge debench-counter" data-badge="debench-badge-blue">
+              <span>{{@message}}</span>
+            </div>
           </li>
           <li data-target="debench-request-block">
-            Request: <b>{{@request}}</b>
+            Request
+            <div class="debench-badge debench-counter" data-badge="debench-badge-blue">
+              <span>{{@request}}</span>
+            </div>
           </li>
           <li data-target="debench-session-block">
-            Session: <b>{{@session}}</b>
+            Session
+            <div class="debench-badge debench-counter" data-badge="debench-badge-blue">
+              <span>{{@session}}</span>
+            </div>
           </li>
           <li>
             <i>{{@requestInfo}}</i>
@@ -85,16 +102,7 @@
       </div>
     </li>
   </ul>
-
-  <script>
-    var debenchBase = '{{@base}}';
-    var debenchPanelMain = '';
-    var debenchPanelLast = '';
-
-    if (typeof jQuery != 'undefined') {
-      $('script[src*="debench/assets/js/jquery.min.js"]').remove();
-    }
-  </script>
+  
   <script src="{{@base}}/debench/assets/js/jquery.min.js"></script>
   <script src="{{@base}}/debench/assets/js/jquery.cookie-1.4.1.min.js"></script>
   <script src="{{@base}}/debench/assets/js/debench.js"></script>

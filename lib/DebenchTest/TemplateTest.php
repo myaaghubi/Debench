@@ -8,17 +8,14 @@ use PHPUnit\Framework\TestCase;
 
 class TemplateTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-    }
+    protected function tearDown(): void {}
 
     public function testMakeUI(): void
     {
-
         $templateRef = new \ReflectionClass(Template::class);
         $srcDir = dirname($templateRef->getFilename()) . '/ui';
 
-        $destDir = __DIR__ . '/copydest';
+        $destDir = dirname(__FILE__, 3) . '/copydest';
 
         Utils::deleteDir($destDir);
         $this->assertFileDoesNotExist($destDir, "This dir should not be exists.");
@@ -39,6 +36,8 @@ class TemplateTest extends TestCase
         );
 
         Utils::deleteDir($destDir);
+        Template::makeUI($destDir);
+        Utils::deleteDir($destDir);
     }
 
     public function testRender(): void
@@ -53,7 +52,7 @@ class TemplateTest extends TestCase
         $this->assertStringContainsString($key[1], $html);
 
         $this->assertMatchesRegularExpression("/{{@$key[0]}}/", file_get_contents($pathHtm));
-        
+
         $this->expectException(\Exception::class);
         $html = Template::render('this\path\doesnt\exists', []);
     }

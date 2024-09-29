@@ -22,7 +22,6 @@ class UtilsTest extends TestCase
 
     public function testDeleteDir(): void
     {
-
         $destDir = __DIR__ . '/copydest';
         @mkdir($destDir . '/test/test', 0777, true);
 
@@ -32,21 +31,16 @@ class UtilsTest extends TestCase
 
     public function testCopyDir(): void
     {
-        $destDir = __DIR__ . '/copydest';
+        $destDir = dirname(__FILE__, 3) . '/copydest';
 
         Utils::deleteDir($destDir);
         $this->assertFileDoesNotExist($destDir, "This dir should not be exists.");
-
-        $this->expectException(\Exception::class);
-        Utils::copyDir('this/path/doesnt/exists', $destDir);
-
 
         $templateRef = new \ReflectionClass(Utils::class);
         $srcDir = dirname($templateRef->getFilename()) . '/ui';
 
         Utils::copyDir($srcDir, $destDir);
         $this->assertFileExists($destDir, "This dir $destDir should be exists.");
-
 
         $srcFilesCount = count(glob($srcDir . '/*'));
         $destFilesCount = count(glob($destDir . '/*'));
@@ -59,6 +53,18 @@ class UtilsTest extends TestCase
                 "The number of files does not match! src: $srcFilesCount, dest: $destFilesCount "
         );
 
+        // lets get a files from the dir and make some changes
+        $files = glob($destDir . '/*');
+        $this->assertIsArray($files);
+        // let's change the content to make it not match with the original file
+        file_put_contents($files[0], "");
+        // let's delete one
+        @unlink($files[1]);
+
+        Utils::copyDir($srcDir, $destDir);
+
+
+        Utils::copyDir("path/doesnt/exists", $destDir);
         Utils::deleteDir($destDir);
     }
 
