@@ -51,7 +51,7 @@
         <ul>
           <li data-target="debench-panel-toggle">
             <b>{{@fullExecTime}} ms</b> /
-            <b>{{@ramUsage}}</b> |
+            <b>{{@ramUsagePeak}}</b> |
             {{@requestInfo}}
           </li>
         </ul>
@@ -63,8 +63,10 @@
           </li>
           <li data-target="debench-checkpoint-block">
             <b>{{@fullExecTime}} ms</b> / 
-            <b>{{@ramUsage}}</b> / 
-            <b>{{@pointsCount}}</b>
+            <b>{{@ramUsagePeak}}</b>
+            <div class="debench-badge debench-counter">
+              <span>{{@pointsCount}}</span>
+            </div>
           </li>
           <li data-target="debench-exception-block">
             Errors
