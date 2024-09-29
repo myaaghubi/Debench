@@ -105,6 +105,18 @@ debench .debench-main-panel ul li[data-target="debench-info-block"] {
 debench .debench-main-panel ul li[data-target="debench-info-block"]:hover {
   background-color: #77aabb;
 }
+debench .debench-message-INFO td {
+  color: #77aabb!important;
+}
+debench .debench-message-WARNING td {
+  color: #bba977!important;
+}
+debench .debench-message-ERROR td {
+  color: #bb7777!important;
+}
+debench .debench-message-DUMP td {
+  color: #4f656b!important;
+}
 debench b {
   color: #333;
 }
@@ -142,4 +154,3 @@ debench .debench-circle span[title] {
     font-weight: bold !important;
     text-decoration: none !important;
 }
-  
