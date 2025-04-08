@@ -41,6 +41,7 @@ debench .debench-panel table {
   border-spacing: 1px !important;
 }
 debench .debench-panel td {
+  width:auto!important;
   padding: 0 1px;
   color: #555 !important;
   line-height: 150% !important;
@@ -79,7 +80,7 @@ debench .debench-main-panel-minimal {
 }
 debench .debench-main-panel ul,
 debench .debench-main-panel-minimal ul {
-  float: left;
+  float: left !important;
   padding: 0;
   margin: 0px !important;
   list-style-type: none !important;
@@ -87,7 +88,7 @@ debench .debench-main-panel-minimal ul {
 }
 debench .debench-main-panel ul li,
 debench .debench-main-panel-minimal ul li {
-  float: left;
+  float: left !important;
   padding: 5px 7px;
   line-height: 150% !important;
 }
@@ -137,8 +138,10 @@ debench .debench-panel::-webkit-scrollbar-thumb:hover {
 }
 debench .debench-badge {
   height: 100% !important;
+  max-height: 19px !important;
   min-width: 19px !important;
   padding: 0 4px !important;
+  vertical-align: middle !important;
   text-align: center !important;
   border-radius: 12px !important;
   display: inline-block !important;
