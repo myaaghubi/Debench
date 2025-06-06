@@ -6,7 +6,7 @@ declare(strict_types=1);
  * @package Debench
  * @link http://github.com/myaaghubi/debench Github
  * @author Mohammad Yaaghubi <m.yaaghubi.abc@gmail.com>
- * @copyright Copyright (c) 2024, Mohammad Yaaghubi
+ * @copyright Copyright (c) 2025, Mohammad Yaaghubi
  * @license MIT License
  */
 
@@ -16,7 +16,7 @@ class Debench
 {
     private static bool $enable;
     private static string $ui;
-    private static string $pathCalled;
+    private static string $path;
     private static string $pathUI;
     private static bool $minimalOnly;
 
@@ -39,14 +39,28 @@ class Debench
      * @param  string $ui
      * @return void
      */
-    public function __construct(bool $enable = null, string $ui = null)
+    public function __construct(bool $enable = true, string $path = 'public', string $ui = 'assets')
     {
-        self::$enable = $enable ?? true;
-        self::$ui = $ui ? rtrim($ui, '/') : 'theme';
-        self::$pathCalled = dirname((Utils::getBacktrace()[0])['file']);
-        self::$pathUI = self::$pathCalled . '/' . self::$ui . '/debench';
+        self::$enable = $enable;
+        self::$ui = rtrim($ui, '/');
+        self::$path = rtrim($path, '/');
+        if (empty($path)) {
+            self::$path = dirname((Utils::getBacktrace()[0])['file']);
+        }
+        self::$pathUI = self::$path . '/' . trim($path, '/') . '/' . self::$ui . '/debench';
+        
+        $base = \Base::instance();
 
-        if (!self::$enable) {
+        if (!self::$enable || $base->get("CLI")) {
+            return;
+        }
+
+        
+        $currentUrl = $base->get('URI');
+        $path = parse_url($currentUrl, PHP_URL_PATH);
+        $fileInfo = pathinfo($path);
+
+        if (!empty($fileInfo['extension']) && in_array($fileInfo['extension'], ['js', 'css'])) {
             return;
         }
 
@@ -829,6 +843,9 @@ class Debench
         $output = '';
 
         foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $value = "array [".implode(', ', $value)."]";
+            }
             $output .= Template::render($theme, [
                 "key" => $key,
                 "value" => $value
@@ -858,10 +875,10 @@ class Debench
      * @param  string $ui
      * @return Debench
      */
-    public static function getInstance(bool $enable = null, string $ui = null): Debench
+    public static function getInstance(bool $enable=true, string $path='public', string $ui='assets'): Debench
     {
         if (self::$instance === null) {
-            self::$instance = new self($enable, $ui);
+            self::$instance = new self($enable, $path, $ui);
         }
 
         return self::$instance;
