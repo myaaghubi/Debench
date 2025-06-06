@@ -11,6 +11,9 @@ debench * {
   text-align: left !important;
   font-size: 13px !important;
 }
+debench ul {
+  display: block!important;
+}
 debench ul.debench-main-block {
   margin: 0px !important;
   padding: 0 !important;
