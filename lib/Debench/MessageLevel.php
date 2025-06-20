@@ -18,6 +18,7 @@ enum MessageLevel
     case WARNING;
     case ERROR;
     case DUMP;
+    case COMPARISON;
 
     public function name(): string
     {
@@ -26,6 +27,7 @@ enum MessageLevel
             MessageLevel::WARNING => 'Warning',
             MessageLevel::ERROR => 'Error',
             MessageLevel::DUMP => 'Dump',
+            MessageLevel::COMPARISON => 'Comparison',
         };
     }
 }

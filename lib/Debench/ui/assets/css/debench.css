@@ -124,6 +124,9 @@ debench .debench-message-ERROR td {
 debench .debench-message-DUMP td {
   color: #4f656b !important;
 }
+debench .debench-message-COMPARISON td {
+  color: #4f656b !important;
+}
 debench b {
   color: #333;
 }
