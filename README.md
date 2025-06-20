@@ -55,6 +55,15 @@ Debench::getInstance(false);
 // or
 Debench::enable(false);
 ```
+For `comparison` mode
+```php
+// Debench::compare($func1, $func2, $tag='', $iterations=1000);
+Debench::compare(function () use ($mongo) {
+    $mongo->find([])
+}, function () use ($sql) {
+    $sql->exec('select ...');
+});
+```
 
 ## License
 
