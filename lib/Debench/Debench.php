@@ -847,11 +847,19 @@ class Debench
             $file = basename($exception->getFile());
             $path = str_replace($file, "<b>$file</b>", $exception->getFile());
 
+            $fullTrace = '';
+            $traces = $exception->getTrace();
+            foreach ($traces as $trace) {
+                $fullTrace .= $trace['file'] . ":" . $trace['line'] . "\n";
+            }
+
+
             $logException .= Template::render(self::$pathUI . '/widget.log.exception.htm', [
                 // "code" => $exception->getCode(),
                 "message" => $exception->getMessage(),
                 "path" => $path,
                 "line" => $exception->getLine(),
+                "fullTrace" => $fullTrace,
             ]);
         }
 
