@@ -46,13 +46,13 @@ class Utils
     public static function copyDir(string $from, string $to): void
     {
         // open the source directory
-        $dir = opendir($from);
+        $dir = @opendir($from);
 
         if ($dir===false) {
             return;
         }
 
-        @mkdir($to);
+        @mkdir($to, 0775, true);
 
         // Loop through the files in source directory
         while ($file = readdir($dir)) {
