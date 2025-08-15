@@ -9,19 +9,18 @@ use PHPUnit\Framework\TestCase;
 class DebenchTest extends TestCase
 {
     private ?Debench $debench;
-    private string $theme;
+    private string $path;
 
     protected function setUp(): void
     {
-        $this->theme = 'theme';
-        Debench::getInstance(false, $this->theme);
-        $this->debench = new Debench(true, $this->theme);
+        Debench::getInstance(false);
+        $this->debench = new Debench(true);
+        $this->path = $this->debench->getPathUI();
     }
 
     protected function tearDown(): void
     {
-        // Utils::deleteDir($this->debench->getPathUI());
-        $this->debench = null;
+        Utils::deleteDir(dirname($this->path, 2));
     }
 
     protected static function callMethod(object $object, string $name, array $args = [])
@@ -35,7 +34,7 @@ class DebenchTest extends TestCase
     public function testConstruct(): void
     {
         $this->assertTrue($this->debench->isEnable());
-        $this->assertEquals($this->theme, $this->debench->isEnable());
+        $this->assertEquals($this->path, $this->debench->isEnable());
     }
 
     public function testTheTheme(): void
@@ -59,6 +58,7 @@ class DebenchTest extends TestCase
 
     public function testShutdownFunction(): void
     {
+        $this->debench->point('point1');
         $output = self::callMethod($this->debench, 'shutdownFunction');
         $this->assertTrue($output);
 
@@ -231,6 +231,7 @@ class DebenchTest extends TestCase
 
     public function testMessageInfo(): void
     {
+        Debench::clearMessages();
         Debench::info('oops');
         $this->assertCount(1, Debench::messages());
 
@@ -245,6 +246,7 @@ class DebenchTest extends TestCase
 
     public function testMessageWarning(): void
     {
+        Debench::clearMessages();
         Debench::warning('oops');
         $this->assertCount(1, Debench::messages());
 
@@ -340,7 +342,7 @@ class DebenchTest extends TestCase
         $this->assertInstanceOf(Debench::class, Debench::getInstance());
 
         unset($this->debench);
-        $this->assertInstanceOf(Debench::class, Debench::getInstance(true, $this->theme));
+        $this->assertInstanceOf(Debench::class, Debench::getInstance(true, $this->path));
     }
 
     public function testWakeup(): void

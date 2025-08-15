@@ -44,7 +44,7 @@ class Debench
         self::$enable = $enable;
 
         $base = \Base::instance();
-        if (!self::$enable || $base->get("CLI") || $base->get('AJAX')) {
+        if (!self::$enable|| $base->get('AJAX') || ($base->get("CLI")&&defined('PHPUnit'))) {
             return;
         }
 
@@ -53,7 +53,7 @@ class Debench
         if (empty($path)) {
             self::$path = dirname((Utils::getBacktrace()[0])['file']);
         }
-        self::$pathUI = self::$path . '/' . trim($path, '/') . '/' . self::$ui . '/debench';
+        self::$pathUI = self::$path . '/' . self::$ui . '/debench';
 
 
 
@@ -242,7 +242,7 @@ class Debench
         $prevCP = null;
 
         foreach ($this->getCheckPoints() as $key => $cp) {
-            if (!empty($prevKey) && $prevCP != null) {
+            if (!is_null($prevCP) && !empty($prevKey)) {
                 $diff = $cp->getTimestamp() - $prevCP->getTimestamp();
                 $this->checkPoints[$prevKey]->setTimestamp($diff);
             }
@@ -251,8 +251,11 @@ class Debench
             $prevCP = $cp;
         }
 
-        $diff = $this->endPointMS - $prevCP->getTimestamp();
-        $this->checkPoints[$prevKey]->setTimestamp($diff);
+        $diff = 0;
+        if (!is_null($prevCP) && !empty($prevKey)) {
+            $diff = $this->endPointMS - $prevCP->getTimestamp();
+            $this->checkPoints[$prevKey]->setTimestamp($diff);
+        }
     }
 
 
