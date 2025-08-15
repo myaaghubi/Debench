@@ -65,6 +65,12 @@ Debench::compare(function () use ($mongo) {
 });
 ```
 
+# How to test
+Just run:
+```
+./vendor/bin/phpunit
+```
+
 ## License
 
 You are allowed to use this plugin under the terms of the MIT License.
