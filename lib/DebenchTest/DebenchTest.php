@@ -91,12 +91,36 @@ class DebenchTest extends TestCase
         $this->assertTrue($verify);
     }
 
+    public function testMakeCheckTag(): void
+    {
+        $tag = self::callMethod($this->debench, 'makeTag', ['', 2]);
+        $result = self::callMethod($this->debench, 'checkTag', [$tag]);
+        $this->assertTrue($result);
+
+        $tag = self::callMethod($this->debench, 'makeTag', ['my_tag', 2]);
+        $result = self::callMethod($this->debench, 'checkTag', [$tag]);
+        $this->assertTrue($result);
+
+        $tag = self::callMethod($this->debench, 'makeTag', ['^*(', 2]);
+        $result = self::callMethod($this->debench, 'checkTag', [$tag]);
+        $this->assertFalse($result);
+
+        $result = self::callMethod($this->debench, 'checkTag', ['']);
+        $this->assertFalse($result);
+    }
+
     public function testGetTagName(): void
     {
-        $tag = self::callMethod($this->debench, 'makeTag', ['test', 2]);
+        $this->assertContainsOnlyInstancesOf(CheckPoint::class, $this->debench->getCheckPoints());
 
-        $tag = self::callMethod($this->debench, 'getTagName', [$tag]);
-        $this->assertEquals('#test', $tag);
+        $tag = self::callMethod($this->debench, 'makeTag', ['', 2]);
+        self::callMethod($this->debench, 'addCheckPoint', [0, 0, '', 0, $tag]);
+
+        // we have one Script and one Debench checkpoints, both happens inside the constructor
+        $this->assertCount(3, $this->debench->getCheckPoints());
+
+        $this->expectException(\Exception::class);
+        self::callMethod($this->debench, 'addCheckPoint', [10, 0, '', 0, 'sdf#']);
     }
 
     public function testAddCheckPoint(): void
