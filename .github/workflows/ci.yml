@@ -5,7 +5,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-versions: ["8.1", "8.2", "8.3"]
+        php-versions: ["8.1", "8.4"]
     runs-on: ${{ matrix.operating-system }}
     steps:
       - name: Checkout
@@ -15,7 +15,6 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
-          extensions: mbstring, intl, pdo_sqlite, pdo_mysql
           coverage: pcov
 
       - name: Get composer cache directory
