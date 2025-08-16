@@ -6,7 +6,7 @@ declare(strict_types=1);
  * @package Debench, MessageLevel
  * @link http://github.com/myaaghubi/debench Github
  * @author Mohammad Yaaghubi <m.yaaghubi.abc@gmail.com>
- * @copyright Copyright (c) 2024, Mohammad Yaaghubi
+ * @copyright Copyright (c) 2025, Mohammad Yaaghubi
  * @license MIT License
  */
 
@@ -18,6 +18,7 @@ enum MessageLevel
     case WARNING;
     case ERROR;
     case DUMP;
+    case COMPARISON;
 
     public function name(): string
     {
@@ -26,6 +27,7 @@ enum MessageLevel
             MessageLevel::WARNING => 'Warning',
             MessageLevel::ERROR => 'Error',
             MessageLevel::DUMP => 'Dump',
+            MessageLevel::COMPARISON => 'Comparison',
         };
     }
 }

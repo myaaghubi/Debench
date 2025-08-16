@@ -6,7 +6,7 @@ declare(strict_types=1);
  * @package Debench
  * @link http://github.com/myaaghubi/debench Github
  * @author Mohammad Yaaghubi <m.yaaghubi.abc@gmail.com>
- * @copyright Copyright (c) 2024, Mohammad Yaaghubi
+ * @copyright Copyright (c) 2025, Mohammad Yaaghubi
  * @license MIT License
  */
 
@@ -16,7 +16,7 @@ class Debench
 {
     private static bool $enable;
     private static string $ui;
-    private static string $pathCalled;
+    private static string $path;
     private static string $pathUI;
     private static bool $minimalOnly;
 
@@ -39,14 +39,29 @@ class Debench
      * @param  string $ui
      * @return void
      */
-    public function __construct(bool $enable = null, string $ui = null)
+    public function __construct(bool $enable = true, string $path = 'public', string $ui = 'assets')
     {
-        self::$enable = $enable ?? true;
-        self::$ui = $ui ? rtrim($ui, '/') : 'theme';
-        self::$pathCalled = dirname((Utils::getBacktrace()[0])['file']);
-        self::$pathUI = self::$pathCalled . '/' . self::$ui . '/debench';
+        self::$enable = $enable;
 
-        if (!self::$enable) {
+        $base = \Base::instance();
+        if (!self::$enable|| $base->get('AJAX') || ($base->get("CLI")&&defined('PHPUnit'))) {
+            return;
+        }
+
+        self::$ui = rtrim($ui, '/');
+        self::$path = rtrim($path, '/');
+        if (empty($path)) {
+            self::$path = dirname((Utils::getBacktrace()[0])['file']);
+        }
+        self::$pathUI = self::$path . '/' . self::$ui . '/debench';
+
+
+
+        $currentUrl = $base->get('URI');
+        $path = parse_url($currentUrl, PHP_URL_PATH);
+        $fileInfo = pathinfo($path);
+
+        if (!empty($fileInfo['extension']) && in_array($fileInfo['extension'], ['js', 'css'])) {
             return;
         }
 
@@ -116,7 +131,7 @@ class Debench
     private function addCheckPoint(int $currentTime, int $memory, string $path, int $lineNumber, string $key = ''): void
     {
         if (empty($key) || !$this->checkTag($key)) {
-            throw new \Exception("The `key` is empty or is not in the right format!!");
+            throw new \Exception("The `key` ($key) is empty or is not in the right format!!");
         }
 
         $checkPoint = new CheckPoint($currentTime, $memory, $path, $lineNumber);
@@ -181,6 +196,39 @@ class Debench
 
 
     /**
+     * benchmark & compare
+     * 
+     * @param  string $tag
+     * @return void
+     */
+    public static function compare($func1 = null, $func2 = null, string $tag = '', int $iterations = 1000): void
+    {
+        if (!self::$enable) {
+            return;
+        }
+
+        $currentTime = self::currentTime();
+        if ($func1) {
+            for ($i = 0; $i < $iterations; $i++) {
+                $func1();
+            }
+        }
+
+        $result1 = self::currentTime() - $currentTime;
+
+        if ($func2) {
+            for ($i = 0; $i < $iterations; $i++) {
+                $func2();
+            }
+        }
+
+        $result2 = self::currentTime() - $currentTime - $result1;
+
+        self::comparison($tag, $iterations, $result1, $result2);
+    }
+
+
+    /**
      * Calculate elapsed time for each checkpoint
      *
      * @return void
@@ -194,7 +242,7 @@ class Debench
         $prevCP = null;
 
         foreach ($this->getCheckPoints() as $key => $cp) {
-            if (!empty($prevKey) && $prevCP != null) {
+            if (!is_null($prevCP) && !empty($prevKey)) {
                 $diff = $cp->getTimestamp() - $prevCP->getTimestamp();
                 $this->checkPoints[$prevKey]->setTimestamp($diff);
             }
@@ -203,8 +251,11 @@ class Debench
             $prevCP = $cp;
         }
 
-        $diff = $this->endPointMS - $prevCP->getTimestamp();
-        $this->checkPoints[$prevKey]->setTimestamp($diff);
+        $diff = 0;
+        if (!is_null($prevCP) && !empty($prevKey)) {
+            $diff = $this->endPointMS - $prevCP->getTimestamp();
+            $this->checkPoints[$prevKey]->setTimestamp($diff);
+        }
     }
 
 
@@ -458,6 +509,17 @@ class Debench
      */
     public function getCurrentTime(): int
     {
+        return self::currentTime();
+    }
+
+
+    /**
+     * Get the current time in milliseconds
+     *
+     * @return int
+     */
+    public static function currentTime(): int
+    {
         $microtime = microtime(true) * 1000;
         return intval($microtime);
     }
@@ -579,6 +641,21 @@ class Debench
         $messageString = implode('', $messages);
 
         self::addMessage($messageString, MessageLevel::DUMP);
+    }
+
+
+    /**
+     * Add a comparison result
+     * 
+     * @param  string $tag
+     * @param  int $iterations
+     * @param  int $result1
+     * @param  int $result2
+     * @return void
+     */
+    protected static function comparison(string $tag, int $iterations, int $result1, int $result2): void
+    {
+        self::addMessage("$tag x" . number_format($iterations) . " > res1: " . number_format($result1) . " ms / res2: " . number_format($result2) . " ms", MessageLevel::COMPARISON);
     }
 
 
@@ -773,11 +850,19 @@ class Debench
             $file = basename($exception->getFile());
             $path = str_replace($file, "<b>$file</b>", $exception->getFile());
 
+            $fullTrace = '';
+            $traces = $exception->getTrace();
+            foreach ($traces as $trace) {
+                $fullTrace .= $trace['file'] . ":" . $trace['line'] . "\n";
+            }
+
+
             $logException .= Template::render(self::$pathUI . '/widget.log.exception.htm', [
                 // "code" => $exception->getCode(),
                 "message" => $exception->getMessage(),
                 "path" => $path,
                 "line" => $exception->getLine(),
+                "fullTrace" => $fullTrace,
             ]);
         }
 
@@ -829,6 +914,9 @@ class Debench
         $output = '';
 
         foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $value = "array [" . implode(', ', $value) . "]";
+            }
             $output .= Template::render($theme, [
                 "key" => $key,
                 "value" => $value
@@ -858,10 +946,10 @@ class Debench
      * @param  string $ui
      * @return Debench
      */
-    public static function getInstance(bool $enable = null, string $ui = null): Debench
+    public static function getInstance(bool $enable = true, string $path = 'public', string $ui = 'assets'): Debench
     {
         if (self::$instance === null) {
-            self::$instance = new self($enable, $ui);
+            self::$instance = new self($enable, $path, $ui);
         }
 
         return self::$instance;

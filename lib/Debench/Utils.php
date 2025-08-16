@@ -6,7 +6,7 @@ declare(strict_types=1);
  * @package Debench, Utils
  * @link http://github.com/myaaghubi/debench Github
  * @author Mohammad Yaaghubi <m.yaaghubi.abc@gmail.com>
- * @copyright Copyright (c) 2024, Mohammad Yaaghubi
+ * @copyright Copyright (c) 2025, Mohammad Yaaghubi
  * @license MIT License
  */
 
@@ -46,13 +46,13 @@ class Utils
     public static function copyDir(string $from, string $to): void
     {
         // open the source directory
-        $dir = opendir($from);
+        $dir = @opendir($from);
 
         if ($dir===false) {
             return;
         }
 
-        @mkdir($to);
+        @mkdir($to, 0775, true);
 
         // Loop through the files in source directory
         while ($file = readdir($dir)) {

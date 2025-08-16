@@ -54,7 +54,7 @@ class UtilsTest extends TestCase
         );
 
         // lets get a files from the dir and make some changes
-        $files = glob($destDir . '/*');
+        $files = glob($destDir . '/*.htm');
         $this->assertIsArray($files);
         // let's change the content to make it not match with the original file
         file_put_contents($files[0], "");

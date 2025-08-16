@@ -14,7 +14,8 @@ class MessageLevelTest extends TestCase
             MessageLevel::INFO,
             MessageLevel::WARNING,
             MessageLevel::ERROR,
-            MessageLevel::DUMP
+            MessageLevel::DUMP,
+            MessageLevel::COMPARISON
         ], MessageLevel::cases());
     }
 

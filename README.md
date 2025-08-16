@@ -20,8 +20,8 @@ require __DIR__ . '/vendor/autoload.php';
 
 // call it from your index.php after autoload 
 // then check the webpage with your browser
-// $debench = new Debench(true, 'theme');
-Debench::getInstance(true, 'theme');
+// $debench = new Debench(true, '../public', $base->get('ASSETS'));
+Debench::getInstance(true, '../public', $base->get('ASSETS'));
 
 // for enable() or minimalOnly() you can 
 // call them even before getInstance
@@ -31,11 +31,13 @@ Debench::enable(false);
 // call them before getInstance too
 Debench::info('let\'s use some memory');
 
+// let's load some
 $st = str_repeat("Debench!", 10000);
 Debench::point('one');
+Debench::dump($st);
 
+// let's load some more
 $st .= str_repeat("Debench!", 10000);
-
 // $debench->newPoint("two");
 Debench::point('two');
 ```
@@ -53,9 +55,24 @@ Debench::getInstance(false);
 // or
 Debench::enable(false);
 ```
+For `comparison` mode
+```php
+// Debench::compare($func1, $func2, $tag='', $iterations=1000);
+Debench::compare(function () use ($mongo) {
+    $mongo->find([])
+}, function () use ($sql) {
+    $sql->exec('select ...');
+});
+```
+
+# How to test
+Just run:
+```
+./vendor/bin/phpunit
+```
 
 ## License
 
 You are allowed to use this plugin under the terms of the MIT License.
 
-Copyright (C) 2024 Mohammad Yaaghubi
+Copyright (C) 2025 Mohammad Yaaghubi
